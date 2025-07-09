@@ -1,0 +1,19 @@
+services:
+    _defaults:
+        autoconfigure: true
+        autowire: true
+
+    # makes classes in src/ available to be used as services
+    # this creates a service per class whose id is the fully-qualified class name
+    JBSupport\ContaoDeeplInstantTranslationBundle\:
+        resource: '../../../src/*'
+        exclude: '../../../src/{DependencyInjection,Entity,Resources}'
+
+    JBSupport\ContaoDeeplInstantTranslationBundle\Classes\TranslationSettingsRegistry:
+        public: true
+
+    JBSupport\Hooks\OutputFrontendTemplateHook:
+        arguments:
+            $registry: '@JBSupport\ContaoDeeplInstantTranslationBundle\Classes\TranslationSettingsRegistry'
+        tags:
+            - { name: contao.hook, hook: modifyFrontendPage, method: modifyTemplate }

@@ -1,0 +1,34 @@
+{
+    "name": "jb-support/contao-deepl-instant-translation-bundle",
+    "type": "contao-bundle",
+    "description": "Custom Bundle for MG Shop",
+    "homepage": "https://jb-support.de",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "JB-Support GmbH",
+            "email": "info@jb-support.de"
+        }
+    ],
+    "require": {
+        "php": "^7.4 || ^8.0",
+        "contao/core-bundle": "^4.13 | 5.0"
+    },
+    "extra": {
+        "contao-manager-plugin": "JBSupport\\ContaoDeeplInstantTranslationBundle\\ContaoManager\\Plugin"
+    },
+    "autoload": {
+        "psr-4": {
+            "JBSupport\\ContaoDeeplInstantTranslationBundle\\": "src/"
+        },
+        "classmap": [
+            "src/Resources/contao/"
+        ],
+        "exclude-from-classmap": [
+            "src/Resources/contao/config/",
+            "src/Resources/contao/dca/",
+            "src/Resources/contao/languages/",
+            "src/Resources/contao/templates/"
+        ]
+    }
+}

@@ -1,0 +1,91 @@
+<form method="POST" class="translation-language-switcher">
+    <input type="hidden" name="REQUEST_TOKEN" value="<?= REQUEST_TOKEN ?>">
+    <select name="lang" id="lang" class="notranslate translation-language-select">
+        <?php foreach ($this->languages as $alpha2 => $language): ?>
+        <option class="translation-language-option" value="<?= $alpha2 ?>"
+            <?= $this->lang == $alpha2 ? 'selected' : '' ?>><?= $language ?></option>
+        <?php endforeach; ?>
+    </select>
+</form>
+
+<div class="translation-spinner-container">
+    <div class="translation-spinner"></div>
+    <span class="translation-spinner-text">Translating...</span>
+</div>
+
+<script>
+    const showModal = JSON.parse('<?= json_encode($this->showModal) ?>');
+
+    document.addEventListener('DOMContentLoaded', function() {
+        const selectElement = document.getElementById('lang');
+        selectElement.addEventListener('change', function(e) {
+            if (!showModal) {
+                this.form.submit();
+                return;
+            }
+
+            const translationStrings = JSON.parse('<?= $this->translatingStrings ?>');
+            const newLang = e.target.value;
+            const spinnerText = document.querySelector('.translation-spinner-text');
+            spinnerText.textContent = `${translationStrings[newLang]}...`;
+
+            const spinnerContainer = document.querySelector('.translation-spinner-container');
+            spinnerContainer.classList.add('active');
+
+            this.form.submit();
+        });
+    });
+</script>
+
+<style>
+    .translation-spinner-container {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        z-index: 100;
+        overflow: hidden;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        background-color: rgba(0, 0, 0, 0);
+        opacity: 0;
+        pointer-events: none;
+        transition: background-color 0.1s ease-in, opacity 0.1s ease-in;
+        flex-direction: column;
+    }
+
+    .translation-spinner-container.active {
+        background-color: rgba(0, 0, 0, 0.3);
+        opacity: 1;
+        pointer-events: auto;
+        transition-delay: 0s;
+    }
+
+    .translation-spinner {
+        border: 8px solid rgba(255, 255, 255, 0.1);
+        border-top: 8px solid #fff;
+        border-radius: 50%;
+        width: 50px;
+        height: 50px;
+        animation: spin 1s linear infinite;
+    }
+
+    .translation-spinner-text {
+        color: #fff;
+        font-size: 1.2em;
+        margin-top: 10px;
+        text-align: center;
+    }
+
+    @keyframes spin {
+        0% {
+            transform: rotate(0deg);
+        }
+
+        100% {
+            transform: rotate(360deg);
+        }
+    }
+</style>
