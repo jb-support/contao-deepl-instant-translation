@@ -51,6 +51,7 @@ class LanguageSwitcherModuleController extends AbstractFrontendModuleController
         $template->languages = $languagesArr;
         $template->lang = $cookie ? $cookie : $agentLanguage;
         $template->showModal = $model->show_modal ? true : false;
+        $template->elementType = $model->element_type;
         $template->translatingStrings = json_encode($translationInProgressStrings);
 
         return $template->getResponse();

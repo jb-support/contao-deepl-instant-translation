@@ -6,6 +6,7 @@ $GLOBALS['TL_LANG']['tl_module']['usage_legend'] = 'Usage Information';
 
 $GLOBALS['TL_LANG']['tl_module']['deepl_key'] = ['DeepL API Key', 'e.g.: 6413******3:fx'];
 $GLOBALS['TL_LANG']['tl_module']['languages'] = ['Enabled Languages', 'Languages to show in the switcher'];
+$GLOBALS['TL_LANG']['tl_module']['element_type'] = ['Element Type', 'Choose the type of element to display (Select, Radio or Buttons)'];
 $GLOBALS['TL_LANG']['tl_module']['show_modal'] = ['Show Modal', 'Show a modal dialog while translating'];
 
 $GLOBALS['TL_LANG']['tl_module']['usage_info']['label'] = 'DeepL API Usage Information';

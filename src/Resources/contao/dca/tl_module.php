@@ -39,8 +39,19 @@ $GLOBALS['TL_DCA']['tl_module']['fields']['usage_info'] = [
     'input_field_callback' => ['translation_module', 'getUsageInfo'],
 ];
 
+$GLOBALS['TL_DCA']['tl_module']['fields']['element_type'] = [
+    'exclude' => false,
+    'inputType' => 'select',
+    'options' => ['select' => 'Select', 'radio' => 'Radio', 'buttons' => 'Buttons'],
+    'eval' => [
+        'tl_class' => 'w50',
+        'chosen' => true,
+    ],
+    'sql' => "varchar(10) NOT NULL default 'select'",
+];
+
 $GLOBALS['TL_DCA']['tl_module']['palettes']['language_switcher_module'] =
-    '{title_legend},name, type, deepl_key, original_language, languages, show_modal; {usage_legend},usage_info';
+    '{title_legend},name, type, deepl_key, original_language, element_type, show_modal, languages; {usage_legend},usage_info';
 
 class translation_module
 {
@@ -67,7 +78,6 @@ class translation_module
         );
 
         $usageInfo = '';
-        $class = 'tl_info';
 
         if ($plan == 'API Pro') {
             $characterInfo = sprintf(
@@ -84,10 +94,6 @@ class translation_module
 
             $usageInfo = $characterInfo . "<br>" . $timeInfo;
         } else {
-            if ($response['character_count'] == $response['character_limit']) {
-                $class = 'tl_error';
-            }
-
             $usageInfo = sprintf(
                 $GLOBALS['TL_LANG']['tl_module']['usage_info']['characters'],
                 number_format($response['character_count']),
@@ -95,7 +101,7 @@ class translation_module
             );
         }
 
-        return "<div class='$class'>
+        return "<div class='tl_info'>
             <h2>" . $GLOBALS['TL_LANG']['tl_module']['usage_info']['label'] . "</h2>
             <strong>" . $planstring . "</strong> <br>
             <strong>" . $usageInfo . "

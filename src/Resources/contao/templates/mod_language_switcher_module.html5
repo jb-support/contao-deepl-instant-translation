@@ -1,11 +1,42 @@
 <form method="POST" class="translation-language-switcher">
     <input type="hidden" name="REQUEST_TOKEN" value="<?= REQUEST_TOKEN ?>">
+    <?php switch($this->elementType):
+        case 'select':
+    ?>
     <select name="lang" id="lang" class="notranslate translation-language-select">
         <?php foreach ($this->languages as $alpha2 => $language): ?>
         <option class="translation-language-option" value="<?= $alpha2 ?>"
             <?= $this->lang == $alpha2 ? 'selected' : '' ?>><?= $language ?></option>
         <?php endforeach; ?>
     </select>
+    <?php break; ?>
+    <?php case 'radio': ?>
+    <ul class="notranslate translation-language-list">
+        <?php foreach ($this->languages as $alpha2 => $language): ?>
+        <li class="translation-language-item">
+            <label>
+                <input type="radio" name="lang" value="<?= $alpha2 ?>"
+                    <?= $this->lang == $alpha2 ? 'checked' : '' ?>>
+                <?= $language ?>
+            </label>
+        </li>
+        <?php endforeach; ?>
+    </ul>
+    <?php break; ?>
+    <?php case 'buttons': ?>
+    <div class="notranslate translation-language-buttons">
+        <ul class="translation-language-list">
+            <?php foreach ($this->languages as $alpha2 => $language): ?>
+            <li class="translation-language-item">
+                <button type="submit" name="lang" value="<?= $alpha2 ?>"
+                    class="translation-language-button <?= $this->lang == $alpha2 ? 'active' : '' ?>">
+                    <?= $language ?>
+                </button>
+            </li>
+            <?php endforeach; ?>
+        </ul>
+    </div>
+    <?php endswitch; ?>
 </form>
 
 <div class="translation-spinner-container">
@@ -14,27 +45,43 @@
 </div>
 
 <script>
-    const showModal = JSON.parse('<?= json_encode($this->showModal) ?>');
+    const shouldShowModal = JSON.parse('<?= json_encode($this->showModal) ?>');
 
     document.addEventListener('DOMContentLoaded', function() {
-        const selectElement = document.getElementById('lang');
+        const selectElement = document.querySelector(
+            '.translation-language-select, .translation-language-list'
+        );
+
+        const buttons = document.querySelectorAll('.translation-language-button');
+        if (buttons) {
+            buttons.forEach(button => {
+                button.addEventListener('click', function(e) {
+                    if (shouldShowModal) {
+                        showModal(this.value);
+                    }
+                });
+            });
+        }
+
         selectElement.addEventListener('change', function(e) {
-            if (!showModal) {
-                this.form.submit();
-                return;
+            const form = document.querySelector('.translation-language-switcher');
+
+            if (shouldShowModal) {
+                showModal(e.target.value);
             }
 
-            const translationStrings = JSON.parse('<?= $this->translatingStrings ?>');
-            const newLang = e.target.value;
-            const spinnerText = document.querySelector('.translation-spinner-text');
-            spinnerText.textContent = `${translationStrings[newLang]}...`;
-
-            const spinnerContainer = document.querySelector('.translation-spinner-container');
-            spinnerContainer.classList.add('active');
-
-            this.form.submit();
+            form.submit();
         });
     });
+
+    function showModal(newLang) {
+        const translationStrings = JSON.parse('<?= $this->translatingStrings ?>');
+        const spinnerText = document.querySelector('.translation-spinner-text');
+        spinnerText.textContent = `${translationStrings[newLang]}...`;
+
+        const spinnerContainer = document.querySelector('.translation-spinner-container');
+        spinnerContainer.classList.add('active');
+    }
 </script>
 
 <style>

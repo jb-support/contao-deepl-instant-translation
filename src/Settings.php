@@ -70,7 +70,7 @@ class Settings
 		'uk' => 'Переклад на %s',
 	];
 
-	public function getLanguages()
+	public static function getLanguages()
 	{
 		return self::$languages;
 	}

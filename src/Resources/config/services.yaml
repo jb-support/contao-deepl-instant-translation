@@ -17,3 +17,8 @@ services:
             $registry: '@JBSupport\ContaoDeeplInstantTranslationBundle\Classes\TranslationSettingsRegistry'
         tags:
             - { name: contao.hook, hook: modifyFrontendPage, method: modifyTemplate }
+
+    JBSupport\ContaoDeeplInstantTranslationBundle\EventListener\LanguageRedirectListener:
+        tags:
+            - { name: kernel.event_listener, event: kernel.request, priority: 150 }
+

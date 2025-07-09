@@ -1,7 +1,7 @@
 {
     "name": "jb-support/contao-deepl-instant-translation-bundle",
     "type": "contao-bundle",
-    "description": "Custom Bundle for MG Shop",
+    "description": "A bundle for Contao that provides instant translation capabilities using DeepL.",
     "homepage": "https://jb-support.de",
     "license": "MIT",
     "authors": [
