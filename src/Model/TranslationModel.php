@@ -8,7 +8,7 @@ class TranslationModel extends Model
 {
 	protected static $strTable = 'tl_jb_translation';
 
-	public static function translateText(string $text, string $lang, int $page_id, $deepl_key = null): string
+	public static function translateText(string $text, string $lang, string $source_lang, int $page_id, $deepl_key = null): string
 	{
 		$text = trim(preg_replace('/\s+/', ' ', $text));
 		$hash = md5($text);
@@ -42,6 +42,7 @@ class TranslationModel extends Model
 			curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode([
 				"text" => [$text],
 				"target_lang" => $lang,
+				"source_lang" => $source_lang,
 				'tag_handling' => 'html'
 			]));
 

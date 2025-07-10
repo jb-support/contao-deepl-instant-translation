@@ -17,7 +17,6 @@ use JBSupport\ContaoDeeplInstantTranslationBundle\Settings;
 class LanguageRedirectListener
 {
     private array $supportedLanguages = [];
-    private string $defaultLanguage = 'en';
 
     public function __construct()
     {
@@ -37,9 +36,8 @@ class LanguageRedirectListener
             return;
         }
 
-        $cookielang = $request->cookies->get('lang', $this->defaultLanguage);
+        $cookielang = $request->cookies->get('lang', '');
         $newLang = $request->query->get('lang', $cookielang);
-
 
         $segments = explode('/', ltrim($path, '/'));
         $langInUrl = $segments[0] ?? '';

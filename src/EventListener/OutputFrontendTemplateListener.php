@@ -77,7 +77,7 @@ class OutputFrontendTemplateListener
                     }
 
                     $htmlString = $dom->saveHTML($node);
-                    $text = TranslationModel::translateText($htmlString, $lang, $page_id, $this->DEEPL_KEY);
+                    $text = TranslationModel::translateText($htmlString, $lang, $originalLanguage, $page_id, $this->DEEPL_KEY);
 
                     $pattern = '/' . preg_quote($htmlString, '/') . '/i';
                     $buffer = preg_replace($pattern, $text, $buffer, 1);
