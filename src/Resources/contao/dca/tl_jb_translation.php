@@ -103,7 +103,7 @@ $GLOBALS['TL_DCA']['tl_jb_translation'] = array(
 			'input_field_callback'    => ['tl_jb_translation', 'getHtmlString'],
 		),
 		'original_html' => array(
-			'search'                  => true,
+			'search'                  => false,
 			'inputType'               => 'custom',
 			'input_field_callback'    => ['tl_jb_translation', 'getRenderedString'],
 		),
