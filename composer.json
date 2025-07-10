@@ -1,5 +1,5 @@
 {
-    "name": "jb-support/contao-deepl-instant-translation-bundle",
+    "name": "jb-support/contao-deepl-instant-translation",
     "type": "contao-bundle",
     "description": "A bundle for Contao that provides instant translation capabilities using DeepL.",
     "homepage": "https://jb-support.de",
