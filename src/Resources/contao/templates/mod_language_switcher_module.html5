@@ -1,7 +1,7 @@
-<form method="POST" class="translation-language-switcher">
-    <input type="hidden" name="REQUEST_TOKEN" value="<?= REQUEST_TOKEN ?>">
-    <?php switch($this->elementType):
-        case 'select':
+<form method="GET" class="translation-language-switcher">
+    <?php
+        switch($this->elementType):
+            case 'select':
     ?>
     <select name="lang" id="lang" class="notranslate translation-language-select">
         <?php foreach ($this->languages as $alpha2 => $language): ?>

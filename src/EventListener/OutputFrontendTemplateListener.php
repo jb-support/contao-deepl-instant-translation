@@ -1,13 +1,13 @@
 <?php
 
-namespace JBSupport\Hooks;
+namespace JBSupport\ContaoDeeplInstantTranslationBundle\EventListener;
 
 use Contao\PageModel;
 use Contao\Environment;
 use JBSupport\ContaoDeeplInstantTranslationBundle\Model\TranslationModel;
 use JBSupport\ContaoDeeplInstantTranslationBundle\Classes\TranslationSettingsRegistry;
 
-class OutputFrontendTemplateHook
+class OutputFrontendTemplateListener
 {
     private TranslationSettingsRegistry $registry;
     private string $DEEPL_KEY;

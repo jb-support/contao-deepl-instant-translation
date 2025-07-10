@@ -12,7 +12,7 @@ services:
     JBSupport\ContaoDeeplInstantTranslationBundle\Classes\TranslationSettingsRegistry:
         public: true
 
-    JBSupport\Hooks\OutputFrontendTemplateHook:
+    JBSupport\ContaoDeeplInstantTranslationBundle\EventListener\OutputFrontendTemplateListener:
         arguments:
             $registry: '@JBSupport\ContaoDeeplInstantTranslationBundle\Classes\TranslationSettingsRegistry'
         tags:
