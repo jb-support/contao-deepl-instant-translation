@@ -70,7 +70,7 @@ $GLOBALS['TL_DCA']['tl_jb_translation'] = array(
 
 	// Palettes
 	'palettes' => array(
-		'default'                     => '{general_legend},original_string,original_html,translated_string;',
+		'default'                     => '{general_legend},original_string,translated_string;',
 	),
 	// Fields
 	'fields' => array(
@@ -100,18 +100,12 @@ $GLOBALS['TL_DCA']['tl_jb_translation'] = array(
 			'inputType'               => 'textarea',
 			'eval' 				      => array('disabled' => true, 'allowHtml' => true, 'preserveTags' => true, 'tl_class' => 'clr'),
 			'sql'                     => "text NULL default NULL",
-			'input_field_callback'    => ['tl_jb_translation', 'getHtmlString'],
-		),
-		'original_html' => array(
-			'search'                  => false,
-			'inputType'               => 'custom',
-			'input_field_callback'    => ['tl_jb_translation', 'getRenderedString'],
-			'sql'                     => "text NULL default NULL",
+			// 'input_field_callback'    => ['tl_jb_translation', 'getHtmlString'],
 		),
 		'translated_string' => array(
 			'search' 				  => true,
 			'inputType'               => 'textarea',
-			'eval' 				      => array('mandatory' => true, 'decodeEntities' => false, 'allowHtml' => true, 'preserveTags' => true, 'rte' => 'tinyMCENoRoot', 'tl_class' => 'clr'),
+			'eval' 				      => array('mandatory' => true, 'decodeEntities' => false, 'allowHtml' => true, 'tl_class' => 'clr'),
 			'sql'                     => "text NULL default NULL"
 		)
 	)

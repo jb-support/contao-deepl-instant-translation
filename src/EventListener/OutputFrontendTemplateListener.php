@@ -30,74 +30,82 @@ class OutputFrontendTemplateListener
                 return $buffer;
             }
 
-            if ($lang != $originalLanguage) {
+            if ($lang && $lang != $originalLanguage) {
                 global $objPage;
                 $page_id = $objPage->id;
 
                 $dom = new \DOMDocument();
-                libxml_use_internal_errors(true);
-                $dom->loadHTML($buffer, LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD);
-                libxml_clear_errors();
-
+                @$dom->loadHTML($buffer);
                 $xpath = new \DOMXPath($dom);
+                $nodes = $xpath->query('//text()');
 
-                $tagsToExtract = ['h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'p', 'li', 'label', 'button', 'td', 'th'];
-
-                $queryParts = [];
-                foreach ($tagsToExtract as $tag) {
-                    $queryParts[] = "//div//{$tag}";
+                $inputNodes = $xpath->query('//input[@placeholder] | //textarea[@placeholder]');
+                foreach ($inputNodes as $inputNode) {
+                    $placeholder = $inputNode->getAttribute('placeholder');
+                    if ($placeholder) {
+                        $translatedPlaceholder = TranslationModel::translateText($placeholder, $lang, $originalLanguage, $page_id, $this->DEEPL_KEY);
+                        $inputNode->setAttribute('placeholder', $translatedPlaceholder);
+                    }
                 }
 
-                $queryParts[] = "//div//a[normalize-space(text()) != '']";
-                $queryParts[] = "//input[@placeholder] | //textarea[@placeholder]";
-                $queryParts[] = "//div//span[not(preceding-sibling::text()[normalize-space()]) and not(following-sibling::text()[normalize-space()])]";
-                $queryParts[] = "//head/title";
+                foreach ($nodes as $node) {
+                    $parentNode = $node->parentNode;
+                    $notranslate = false;
+
+                    while ($parentNode && $parentNode->nodeName !== 'html') {
+                        if ($parentNode->hasAttribute('class') && strpos($parentNode->getAttribute('class'), 'notranslate') !== false) {
+                            $notranslate = true;
+                            break;
+                        }
+
+                        $parentNode = $parentNode->parentNode;
+                    }
+
+                    if ($notranslate) {
+                        continue;
+                    }
+
+                    if ($node->parentNode->nodeName !== 'script' && $node->parentNode->nodeName !== 'style') {
+
+                        if ($node->parentNode->nodeName === 'span' || $node->parentNode->nodeName === 'strong') {
+                            $nodeValue = '#markup#' . $nodeValue . '#markup#';
+                        }
+
+                        if (preg_match('/[A-Za-z]/', $node->nodeValue)) {
+                            $numbers = [];
+                            $nodeValue = preg_replace_callback('/\d+/', function ($matches) use (&$numbers) {
+                                $numbers[] = $matches[0];
+                                return '###';
+                            }, $node->nodeValue);
+
+                            $emails = [];
+                            $nodeValue = preg_replace_callback('/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/', function ($matches) use (&$emails) {
+                                $emails[] = $matches[0];
+                                return '#email#';
+                            }, $nodeValue);
+
+                            $translatedText = TranslationModel::translateText($nodeValue, $lang, $originalLanguage, $page_id, $this->DEEPL_KEY);
+
+                            $translatedText = preg_replace_callback('/###/', function () use (&$numbers) {
+                                return array_shift($numbers);
+                            }, $translatedText);
+
+                            $translatedText = preg_replace_callback('/#email#/', function () use (&$emails) {
+                                return array_shift($emails);
+                            }, $translatedText);
+
+                            $node->nodeValue = $translatedText;
+                        }
+                    }
+                }
 
                 $htmlElement = $dom->getElementsByTagName('html')->item(0);
                 if ($htmlElement) {
                     $htmlElement->setAttribute('lang', $lang);
                 }
 
-                $query = implode(' | ', $queryParts);
-                $nodes = $xpath->query($query);
-
-                foreach ($nodes as $node) {
-                    $skip = false;
-                    $parent = $node->parentNode;
-
-                    while ($parent !== null && $parent->nodeType === XML_ELEMENT_NODE) {
-                        if ($parent->hasAttribute('class') && strpos($parent->getAttribute('class'), 'notranslate') !== false) {
-                            $skip = true;
-                            break;
-                        }
-                        $parent = $parent->parentNode;
-                    }
-                    if ($skip) {
-                        continue;
-                    }
-
-                    $htmlString = $dom->saveHTML($node);
-                    $text = TranslationModel::translateText($htmlString, $lang, $originalLanguage, $page_id, $this->DEEPL_KEY);
-
-                    $pattern = '/' . preg_quote($htmlString, '/') . '/i';
-                    $buffer = preg_replace($pattern, $text, $buffer, 1);
-
-                    $newNode = new \DOMDocument('1.0', 'UTF-8');
-                    libxml_use_internal_errors(true);
-                    $newNode->loadHTML('<?xml encoding="UTF-8">' . $text, LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD);
-                    libxml_clear_errors();
-
-                    if ($newNode->documentElement) {
-                        // Import the new node into the main DOM
-                        $imported = $dom->importNode($newNode->documentElement, true);
-                        $node->parentNode->replaceChild($imported, $node);
-                    }
-
-                    $buffer = $dom->saveHTML($dom->documentElement);
-                }
-
-                return $buffer;
-            } else return $buffer;
+                $buffer = $dom->saveHTML();
+            }
         }
 
         return $buffer;

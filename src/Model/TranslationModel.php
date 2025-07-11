@@ -10,7 +10,7 @@ class TranslationModel extends Model
 
 	public static function translateText(string $text, string $lang, string $source_lang, int $page_id, $deepl_key = null): string
 	{
-		$text = trim(preg_replace('/\s+/', ' ', $text));
+		$text = preg_replace('/(?<= )\s+|\s+(?= )/', '', $text); // Remove extra spaces except one on each side if present
 		$hash = md5($text);
 
 		//Check for translation based on page_id, hash, and language
