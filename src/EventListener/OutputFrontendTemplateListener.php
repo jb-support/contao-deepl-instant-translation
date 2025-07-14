@@ -5,6 +5,7 @@ namespace JBSupport\ContaoDeeplInstantTranslationBundle\EventListener;
 use Contao\PageModel;
 use Contao\Environment;
 use JBSupport\ContaoDeeplInstantTranslationBundle\Model\TranslationModel;
+use JBSupport\ContaoDeeplInstantTranslationBundle\Controller\TranslationController;
 use JBSupport\ContaoDeeplInstantTranslationBundle\Classes\TranslationSettingsRegistry;
 
 class OutputFrontendTemplateListener
@@ -43,7 +44,7 @@ class OutputFrontendTemplateListener
                 foreach ($inputNodes as $inputNode) {
                     $placeholder = $inputNode->getAttribute('placeholder');
                     if ($placeholder) {
-                        $translatedPlaceholder = TranslationModel::translateText($placeholder, $lang, $originalLanguage, $page_id, $this->DEEPL_KEY);
+                        $translatedPlaceholder = TranslationController::translateText($placeholder, $lang, $originalLanguage, $page_id, $this->DEEPL_KEY);
                         $inputNode->setAttribute('placeholder', $translatedPlaceholder);
                     }
                 }
@@ -84,7 +85,7 @@ class OutputFrontendTemplateListener
                                 return '#email#';
                             }, $nodeValue);
 
-                            $translatedText = TranslationModel::translateText($nodeValue, $lang, $originalLanguage, $page_id, $this->DEEPL_KEY);
+                            $translatedText = TranslationController::translateText($nodeValue, $lang, $originalLanguage, $page_id, $this->DEEPL_KEY);
 
                             $translatedText = preg_replace_callback('/###/', function () use (&$numbers) {
                                 return array_shift($numbers);

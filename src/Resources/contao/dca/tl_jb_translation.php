@@ -11,6 +11,7 @@
 use Contao\DC_Table;
 use Contao\PageModel;
 use Contao\DataContainer;
+use Contao\Image;
 
 $GLOBALS['TL_DCA']['tl_jb_translation'] = array(
 	// Config
@@ -52,17 +53,18 @@ $GLOBALS['TL_DCA']['tl_jb_translation'] = array(
 				'href'                => 'act=edit',
 				'icon'                => 'edit.svg',
 			),
-			'editAll' => array(
-				'label' => &$GLOBALS['TL_LANG']['tl_your_table']['editAll'],
-				'href'  => 'act=editAll',
-				'icon'  => 'edit_all.svg',
+			'translateString' => array(
+				'label' => &$GLOBALS['TL_LANG']['tl_jb_translation']['translateString'],
+				'href' => 'key=translateString',
+				'icon' => 'bundles/jbsupportcontaodeeplinstanttranslation/deepl.svg',
+				'button_callback' => array('tl_jb_translation', 'deeplIcon'),
 			),
 			'delete' => array(
 				'href'                => 'act=delete',
 				'icon'                => 'delete.svg',
 				'attributes'          => 'onclick="if(!confirm(\'' . ($GLOBALS['TL_LANG']['MSC']['deleteConfirm'] ?? null) . '\'))return false;Backend.getScrollOffset()"',
 			),
-		)
+		),
 	),
 
 	// Select
@@ -157,5 +159,11 @@ class tl_jb_translation extends \Contao\Backend
 		<h3>" . $GLOBALS['TL_LANG']['tl_jb_translation']['original_html'][1] . "</h3>
 		" . $dc->activeRecord->original_string . "
 		</div>";
+	}
+
+	public function deeplIcon($row, $href, $label, $title, $icon, $dc)
+	{
+		$imagehtml = Image::getHtml($icon, $label, 'class="header_deepl_icon" style="width: 20px; height: 16px;"');
+		return '<a href="' . $this->addToUrl($href . '&id=' . $row['id']) . '" title="' . htmlspecialchars($label) . '" class="header_deepl_icon">' . $imagehtml . '</a>';
 	}
 }
