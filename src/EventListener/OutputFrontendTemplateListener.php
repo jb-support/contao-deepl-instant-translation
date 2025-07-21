@@ -4,6 +4,7 @@ namespace JBSupport\ContaoDeeplInstantTranslationBundle\EventListener;
 
 use Contao\PageModel;
 use Contao\Environment;
+use Contao\System;
 use JBSupport\ContaoDeeplInstantTranslationBundle\Model\TranslationModel;
 use JBSupport\ContaoDeeplInstantTranslationBundle\Controller\TranslationController;
 use JBSupport\ContaoDeeplInstantTranslationBundle\Classes\TranslationSettingsRegistry;
@@ -25,7 +26,8 @@ class OutputFrontendTemplateListener
             $enabledLanguages = $this->registry->getEnabledLanguages();
             $originalLanguage = $this->registry->getOriginalLanguage();
 
-            $lang = $_COOKIE['lang'] ?? $originalLanguage;
+            $request = System::getContainer()->get('request_stack')->getCurrentRequest();
+            $lang = $request->attributes->get('language_prefix') ?? $originalLanguage;
 
             if (empty($enabledLanguages) || !$this->languageEnabled($lang, $enabledLanguages)) {
                 return $buffer;
@@ -39,6 +41,29 @@ class OutputFrontendTemplateListener
                 @$dom->loadHTML($buffer);
                 $xpath = new \DOMXPath($dom);
                 $nodes = $xpath->query('//text()');
+                $linkNodes = $xpath->query('//a[@href]');
+                $hrefs = [];
+
+                foreach ($linkNodes as $linkNode) {
+                    $href = $linkNode->getAttribute('href');
+                    if ($href) {
+                        if (!str_contains($href, 'http')) {
+                            $href = str_replace($lang . '/', '', $href);
+                            $href = $lang . '/' . $href;
+                        } else if ($href == Environment::get('base')) {
+                            $href = Environment::get('base') . $lang . '/';
+                        } else if (str_starts_with($href, Environment::get('base'))) {
+                            $href = str_replace(Environment::get('base'), Environment::get('base') . $lang . '/', $href);
+                        }
+                        $hrefs[] = $href;
+                    }
+                }
+
+                foreach ($linkNodes as $index => $linkNode) {
+                    if (isset($hrefs[$index])) {
+                        $linkNode->setAttribute('href', $hrefs[$index]);
+                    }
+                }
 
                 $inputNodes = $xpath->query('//input[@placeholder] | //textarea[@placeholder]');
                 foreach ($inputNodes as $inputNode) {

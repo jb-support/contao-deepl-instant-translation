@@ -2,104 +2,147 @@
 
 namespace JBSupport\ContaoDeeplInstantTranslationBundle\EventListener;
 
-use Contao\CoreBundle\Routing\ScopeMatcher;
-use Contao\CoreBundle\Exception\RedirectResponseException;
-use DASPRiD\Enum\Exception\UnserializeNotSupportedException;
-use Symfony\Component\HttpKernel\HttpKernelInterface;
-use Symfony\Component\HttpKernel\Event\RequestEvent;
-use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
-use Symfony\Component\HttpFoundation\Cookie;
-use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpFoundation\RequestStack;
-use Symfony\Component\HttpFoundation\RedirectResponse;
+use Contao\CoreBundle\Framework\ContaoFramework;
+use JBSupport\ContaoDeeplInstantTranslationBundle\Classes\TranslationSettingsRegistry;
 use JBSupport\ContaoDeeplInstantTranslationBundle\Settings;
+use Symfony\Component\HttpFoundation\RedirectResponse;
+use Symfony\Component\HttpKernel\Event\RequestEvent;
+use Doctrine\DBAL\Connection;
 
 class LanguageRedirectListener
 {
-    private array $supportedLanguages = [];
+    private Connection $connection;
 
-    public function __construct()
+    public function __construct(Connection $connection)
     {
-        $this->supportedLanguages = array_keys(Settings::getLanguages());
+        $this->connection = $connection;
     }
 
     public function onKernelRequest(RequestEvent $event): void
     {
-        if (!$event->isMainRequest()) {
+        // Ensure this is the main request and not a sub-request
+        if ($event->isMainRequest() === false) {
             return;
         }
 
         $request = $event->getRequest();
-        $path = $request->getPathInfo();
+        $pathInfo = $request->getPathInfo();
 
-        if (str_contains($path, '/contao') || str_contains($path, '.xml') || str_contains($path, '.php')) {
+        $settings = $this->getModuleSettings($this->connection->createQueryBuilder());
+        $originalLang = $settings['original_language'];
+        $enabledLanguages = $settings['enabled_languages'];
+
+        //GET parameter > string in url > original language
+
+        $langNew = $request->request->get('lang');
+        $langInUrl = explode('/', $pathInfo)[1];
+        $langInUrl = preg_match('/^[a-z]{2}$/', $langInUrl) ? $langInUrl : '';
+
+        $lang = $originalLang;
+        $strip = false;
+
+        if ($langNew && preg_match('/^[a-z]{2}$/', $langNew)) {
+            $lang = $langNew;
+            $strip = true;
+        } else if ($langInUrl && preg_match('/^[a-z]{2}$/', $langInUrl)) {
+            $lang = $langInUrl;
+            $strip = true;
+        }
+
+        $maybeLang = substr($pathInfo, 1, 2);
+        if ($maybeLang == $lang && $maybeLang != $originalLang) {
+            $strip = true;
+        }
+
+
+        if ($lang == $originalLang && !empty($langInUrl)) {
+            $request->attributes->set('language_prefix', $lang);
+            if ($langInUrl !== $lang) {
+                $newPath = preg_replace('/^\/[a-z]{2}\//', '/' . $lang . '/', $pathInfo, 1);
+            } else if ($langInUrl == $originalLang) {
+                $newPath = substr($pathInfo, strlen($langInUrl) + 1);
+                if ($newPath === '') {
+                    $newPath = '/';
+                }
+            }
+
+            $response = new RedirectResponse($newPath);
+            $event->setResponse($response);
+            return;
+        } else if ($lang == $originalLang && empty($langInUrl)) {
+            $request->attributes->set('language_prefix', $lang);
             return;
         }
 
-        $cookielang = $request->cookies->get('lang', '');
-        $newLang = $request->query->get('lang', $cookielang);
 
-        $segments = explode('/', ltrim($path, '/'));
-        $langInUrl = $segments[0] ?? '';
-
-        if (in_array($newLang, $this->supportedLanguages, true)) {
-            if ($newLang !== $cookielang) {
-                $remainingSegments = array_slice($segments, 1);
-                $newPath = '/' . $newLang;
-                if (!empty($remainingSegments)) {
-                    $newPath .= '/' . implode('/', $remainingSegments);
+        $newReqPath = $pathInfo;
+        if (in_array($lang, $enabledLanguages)) {
+            if ($strip) {
+                $newReqPath = substr($pathInfo, strlen($lang) + 1);
+                if ($newReqPath === '') {
+                    $newReqPath = '/';
                 }
-                $response = new RedirectResponse($newPath);
-                $response->headers->setCookie(
-                    new Cookie('lang', $newLang, strtotime('+1 year'), '/')
-                );
-                $event->setResponse($response);
-                return;
+
+                $request->server->set('REQUEST_URI', $newReqPath);
+                $request->server->set('PATH_INFO', $newReqPath);
+                $request->server->set('ORIGINAL_PATH_INFO', $pathInfo);
             }
-        }
 
-        if (in_array($langInUrl, $this->supportedLanguages, true)) {
-            if ($langInUrl !== $cookielang) {
-                $remainingSegments = array_slice($segments, 1);
-                $newPath = '/' . $langInUrl;
-                if (!empty($remainingSegments)) {
-                    $newPath .= '/' . implode('/', $remainingSegments);
-                }
-                $response = new RedirectResponse($newPath);
-                $response->headers->setCookie(
-                    new Cookie('lang', $langInUrl, strtotime('+1 year'), '/')
+            if ($langInUrl !== $lang) {
+                $newUrl = preg_replace(
+                    '#^/' . preg_quote($langInUrl, '#') . '(?=/|$)#',
+                    '/' . $lang,
+                    $pathInfo,
+                    1
                 );
+
+                if (strpos($newUrl, '/' . $lang . '/') !== 0) {
+                    $newUrl = '/' . $lang . '/' . ltrim($newUrl, '/');
+                }
+
+                $response = new RedirectResponse($newUrl);
                 $event->setResponse($response);
                 return;
             }
 
-            $request->attributes->set('language_prefix', $langInUrl);
-            setcookie('lang', $langInUrl, time() + 365 * 24 * 60 * 60, '/');
+            $request->attributes->set('language_prefix', $lang);
 
-            $remainingSegments = array_slice($segments, 1);
-            $newPath = '/' . ltrim(implode('/', $remainingSegments), '/');
-            $this->overridePathInfo($request, $newPath);
+            $reflection = new \ReflectionObject($request);
+            if ($reflection->hasProperty('pathInfo')) {
+                $property = $reflection->getProperty('pathInfo');
+                $property->setAccessible(true);
+                $property->setValue($request, $newReqPath);
+            }
+
             return;
         }
-
-        $redirectUrl = '/' . $cookielang . $path;
-        $response = new RedirectResponse($redirectUrl);
-        $response->headers->setCookie(
-            new Cookie('lang', $cookielang, strtotime('+1 year'), '/')
-        );
-        $event->setResponse($response);
-        return;
     }
 
-    private function overridePathInfo(Request $request, string $newPath): void
+    private function getModuleSettings($qb)
     {
-        $refObject = new \ReflectionObject($request);
-        if ($refObject->hasProperty('pathInfo')) {
-            $prop = $refObject->getProperty('pathInfo');
-            $prop->setAccessible(true);
-            $prop->setValue($request, $newPath);
-        }
+        if (!isset($_COOKIE['original_language']) || !isset($_COOKIE['enabled_languages'])) {
+            $qb = $this->connection->createQueryBuilder();
+            $qb->select('*')
+                ->from('tl_module')
+                ->where('type = :type')
+                ->setParameter('type', 'language_switcher_module');
 
-        $request->server->set('REQUEST_URI', $newPath);
+            $languageSwitcherModule = $qb->executeQuery()->fetchAssociative();
+
+            setcookie('original_language', $languageSwitcherModule['original_language'], time() + 3600 * 24 * 30, '/');
+            setcookie('enabled_languages', $languageSwitcherModule['languages'], time() + 3600 * 24 * 30, '/');
+
+            $out = [
+                'original_language' => $languageSwitcherModule['original_language'],
+                'enabled_languages' => array_merge([$languageSwitcherModule['original_language']], unserialize($languageSwitcherModule['languages'])),
+            ];
+
+            return $out;
+        } else {
+            return [
+                'original_language' => $_COOKIE['original_language'],
+                'enabled_languages' => array_merge([$_COOKIE['original_language']], unserialize($_COOKIE['enabled_languages'])),
+            ];
+        }
     }
 }

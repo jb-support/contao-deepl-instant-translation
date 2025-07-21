@@ -19,6 +19,8 @@ services:
             - { name: contao.hook, hook: modifyFrontendPage, method: modifyTemplate }
 
     JBSupport\ContaoDeeplInstantTranslationBundle\EventListener\LanguageRedirectListener:
+        arguments:
+            - '@database_connection'
         tags:
             - { name: kernel.event_listener, event: kernel.request, priority: 150 }
 
