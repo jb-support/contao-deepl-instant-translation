@@ -27,7 +27,10 @@ class OutputFrontendTemplateListener
             $originalLanguage = $this->registry->getOriginalLanguage();
 
             $request = System::getContainer()->get('request_stack')->getCurrentRequest();
+            $domain = $request->getSchemeAndHttpHost();
             $lang = $request->attributes->get('language_prefix') ?? $originalLanguage;
+
+            $buffer = $this->addLanghref($domain, $enabledLanguages, $buffer);
 
             if (empty($enabledLanguages) || !$this->languageEnabled($lang, $enabledLanguages)) {
                 return $buffer;
@@ -140,5 +143,19 @@ class OutputFrontendTemplateListener
     private function languageEnabled(string $lang, array $languagesArr): bool
     {
         return isset($languagesArr[$lang]);
+    }
+
+    private function addLanghref($domain, $enabledLanguages, $buffer)
+    {
+        $hreflangLinks = ['<link rel="alternate" hreflang="x-default" href="' . htmlspecialchars(rtrim($domain, '/') . '/') . '">'];
+
+        foreach ($enabledLanguages as $code => $label) {
+            $href = rtrim($domain, '/') . '/' . $code . '/';
+            $hreflangLinks[] = '<link rel="alternate" hreflang="' . htmlspecialchars($code) . '" href="' . htmlspecialchars($href) . '">';
+        }
+        $hreflangLinks = implode("\n", $hreflangLinks);
+        $buffer = str_replace('</head>', $hreflangLinks . '</head>', $buffer);
+
+        return $buffer;
     }
 }
