@@ -32,8 +32,6 @@ class LanguageRedirectListener
         $originalLang = $settings['original_language'];
         $enabledLanguages = $settings['enabled_languages'];
 
-        //GET parameter > string in url > original language
-
         $langNew = $request->request->get('lang');
         $langInUrl = explode('/', $pathInfo)[1];
         $langInUrl = preg_match('/^[a-z]{2}$/', $langInUrl) ? $langInUrl : '';
@@ -54,11 +52,10 @@ class LanguageRedirectListener
             $strip = true;
         }
 
-
         if ($lang == $originalLang && !empty($langInUrl)) {
             $request->attributes->set('language_prefix', $lang);
             if ($langInUrl !== $lang) {
-                $newPath = preg_replace('/^\/[a-z]{2}\//', '/' . $lang . '/', $pathInfo, 1);
+                $newPath = preg_replace('#^/' . preg_quote($langInUrl, '#') . '(/|$)#', '/' . $lang . '$1', $pathInfo, 1);
             } else if ($langInUrl == $originalLang) {
                 $newPath = substr($pathInfo, strlen($langInUrl) + 1);
                 if ($newPath === '') {
@@ -73,7 +70,6 @@ class LanguageRedirectListener
             $request->attributes->set('language_prefix', $lang);
             return;
         }
-
 
         $newReqPath = $pathInfo;
         if (in_array($lang, $enabledLanguages)) {
@@ -96,7 +92,9 @@ class LanguageRedirectListener
                     1
                 );
 
-                if (strpos($newUrl, '/' . $lang . '/') !== 0) {
+
+                if ($newUrl === '/' . $lang || $newUrl === '/' . $lang . '/') {
+                } elseif (strpos($newUrl, '/' . $lang) !== 0) {
                     $newUrl = '/' . $lang . '/' . ltrim($newUrl, '/');
                 }
 
