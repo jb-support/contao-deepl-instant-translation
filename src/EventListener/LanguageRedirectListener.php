@@ -28,13 +28,32 @@ class LanguageRedirectListener
         $request = $event->getRequest();
         $pathInfo = $request->getPathInfo();
 
+        if (str_contains($pathInfo, '/contao') || str_contains($pathInfo, '/contao.php')) {
+            // Skip Contao backend requests
+            return;
+        }
+
         $settings = $this->getModuleSettings($this->connection->createQueryBuilder());
         $originalLang = $settings['original_language'];
         $enabledLanguages = $settings['enabled_languages'];
+        $in_url = $settings['in_url'];
+
 
         $langNew = $request->request->get('lang');
         $langInUrl = explode('/', $pathInfo)[1];
         $langInUrl = preg_match('/^[a-z]{2}$/', $langInUrl) ? $langInUrl : '';
+
+
+        if (!$in_url) {
+            if($langNew) {
+                setcookie('language_prefix', $langNew, time() + 3600 * 24 * 30, '/');
+                $request->attributes->set('language_prefix', $langNew);
+            } else {
+                $lang = $_COOKIE['language_prefix'] ?? $originalLang;
+                $request->attributes->set('language_prefix', $lang);
+            }
+            return;
+        }
 
         $lang = $originalLang;
         $strip = false;
@@ -118,7 +137,8 @@ class LanguageRedirectListener
 
     private function getModuleSettings($qb)
     {
-        if (!isset($_COOKIE['original_language']) || !isset($_COOKIE['enabled_languages'])) {
+
+        if (!isset($_COOKIE['original_language']) || !isset($_COOKIE['enabled_languages']) || !isset($_COOKIE['in_url'])) {
             $qb = $this->connection->createQueryBuilder();
             $qb->select('*')
                 ->from('tl_module')
@@ -129,10 +149,17 @@ class LanguageRedirectListener
 
             setcookie('original_language', $languageSwitcherModule['original_language'], time() + 3600 * 24 * 30, '/');
             setcookie('enabled_languages', $languageSwitcherModule['languages'], time() + 3600 * 24 * 30, '/');
+            setcookie('in_url', (bool) $languageSwitcherModule['in_url'], time() + 3600 * 24 * 30, '/');
+
+            $enabledLanguages = unserialize($languageSwitcherModule['languages']) ?: [];
+            $originalLanguage = $languageSwitcherModule['original_language'];
+
+            $enabledLanguages = array_merge([$originalLanguage], $enabledLanguages);
 
             $out = [
-                'original_language' => $languageSwitcherModule['original_language'],
-                'enabled_languages' => array_merge([$languageSwitcherModule['original_language']], unserialize($languageSwitcherModule['languages'])),
+                'original_language' => $originalLanguage,
+                'enabled_languages' => $enabledLanguages,
+                'in_url' => (bool) $languageSwitcherModule['in_url'],
             ];
 
             return $out;
@@ -140,6 +167,7 @@ class LanguageRedirectListener
             return [
                 'original_language' => $_COOKIE['original_language'],
                 'enabled_languages' => array_merge([$_COOKIE['original_language']], unserialize($_COOKIE['enabled_languages'])),
+                'in_url' => isset($_COOKIE['in_url']) ? (bool)$_COOKIE['in_url'] : true,
             ];
         }
     }

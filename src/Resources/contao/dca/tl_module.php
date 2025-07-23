@@ -14,7 +14,8 @@ $GLOBALS['TL_DCA']['tl_module']['fields']['original_language'] = [
     'inputType'               => 'select',
     'options_callback'        => array(Settings::class, 'getLanguageTranslatedStrings'),
     'eval'                    => array('tl_class' => 'w50', 'chosen' => true, 'mandatory' => true),
-    'sql'                     => "varchar(5) NOT NULL default ''"
+    'sql'                     => "varchar(5) NOT NULL default ''",
+    'save_callback'           => array(array('translation_module', 'invalidateModuleCookies'))
 ];
 
 $GLOBALS['TL_DCA']['tl_module']['fields']['languages'] = [
@@ -22,7 +23,8 @@ $GLOBALS['TL_DCA']['tl_module']['fields']['languages'] = [
     'inputType'               => 'checkboxWizard',
     'eval'                    => array('multiple' => true, 'tl_class' => 'clr w50', 'mandatory' => true),
     'options_callback'        => array(Settings::class, 'getLanguageTranslatedStrings'),
-    'sql'                     => "TEXT NULL"
+    'sql'                     => "TEXT NULL",
+    'save_callback'           => array(array('translation_module', 'invalidateModuleCookies'))
 ];
 
 $GLOBALS['TL_DCA']['tl_module']['fields']['show_modal'] = [
@@ -39,6 +41,14 @@ $GLOBALS['TL_DCA']['tl_module']['fields']['usage_info'] = [
     'input_field_callback' => ['translation_module', 'getUsageInfo'],
 ];
 
+$GLOBALS['TL_DCA']['tl_module']['fields']['in_url'] = [
+    'exclude'                 => true,
+    'inputType'               => 'checkbox',
+    'eval'                    => array('tl_class' => 'w50'),
+    'sql'                     => "TINYINT(1) NULL default '1'",
+    'save_callback'           => array(array('translation_module', 'invalidateModuleCookies'))
+];
+
 $GLOBALS['TL_DCA']['tl_module']['fields']['element_type'] = [
     'exclude' => false,
     'inputType' => 'select',
@@ -51,10 +61,25 @@ $GLOBALS['TL_DCA']['tl_module']['fields']['element_type'] = [
 ];
 
 $GLOBALS['TL_DCA']['tl_module']['palettes']['language_switcher_module'] =
-    '{title_legend},name, type, deepl_key, original_language, element_type, show_modal, languages; {usage_legend},usage_info';
+    '{title_legend},name, type, deepl_key, original_language, element_type, show_modal, in_url, languages; {usage_legend},usage_info';
 
 class translation_module
 {
+    public function invalidateModuleCookies($value)
+    {
+        if (isset($_COOKIE['original_language'])) {
+            setcookie('original_language', '', time() - 3600, '/');
+        }
+        if (isset($_COOKIE['enabled_languages'])) {
+            setcookie('enabled_languages', '', time() - 3600, '/');
+        }
+        if (isset($_COOKIE['in_url'])) {
+            setcookie('in_url', '', time() - 3600, '/');
+        }
+
+        return $value;
+    }
+
     public function getUsageInfo($dc)
     {
         $deepl_key = $dc->activeRecord->deepl_key;

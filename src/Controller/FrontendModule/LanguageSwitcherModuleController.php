@@ -43,6 +43,8 @@ class LanguageSwitcherModuleController extends AbstractFrontendModuleController
 
         $registry->setEnabledLanguages($languagesArr);
         $registry->setOriginalLanguage($model->original_language);
+        $registry->setLanguage($language);
+        $registry->setShowInUrl((bool) $model->in_url);
 
         $template->languages = $languagesArr;
         $template->originalLanguage = $model->original_language;

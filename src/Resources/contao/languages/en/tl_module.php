@@ -8,6 +8,7 @@ $GLOBALS['TL_LANG']['tl_module']['deepl_key'] = ['DeepL API Key', 'e.g.: 6413***
 $GLOBALS['TL_LANG']['tl_module']['languages'] = ['Enabled Languages', 'Languages to show in the switcher'];
 $GLOBALS['TL_LANG']['tl_module']['element_type'] = ['Element Type', 'Choose the type of element to display (Select, Radio or Buttons)'];
 $GLOBALS['TL_LANG']['tl_module']['show_modal'] = ['Show Modal', 'Show a modal dialog while translating'];
+$GLOBALS['TL_LANG']['tl_module']['in_url'] = ['In URL', 'Include the language in the URL, e.g.: /en/'];
 
 $GLOBALS['TL_LANG']['tl_module']['usage_info']['label'] = 'DeepL API Usage Information';
 $GLOBALS['TL_LANG']['tl_module']['usage_info']['no_key'] = 'No DeepL API key provided.';

@@ -47,18 +47,21 @@ class OutputFrontendTemplateListener
                 $linkNodes = $xpath->query('//a[@href]');
                 $hrefs = [];
 
-                foreach ($linkNodes as $linkNode) {
-                    $href = $linkNode->getAttribute('href');
-                    if ($href) {
-                        if (!str_contains($href, 'http')) {
-                            $href = str_replace($lang . '/', '', $href);
-                            $href = $lang . '/' . $href;
-                        } else if ($href == Environment::get('base')) {
-                            $href = Environment::get('base') . $lang . '/';
-                        } else if (str_starts_with($href, Environment::get('base'))) {
-                            $href = str_replace(Environment::get('base'), Environment::get('base') . $lang . '/', $href);
+                $addToUrl = $this->registry->getShowInUrl();
+                if ($addToUrl) {
+                    foreach ($linkNodes as $linkNode) {
+                        $href = $linkNode->getAttribute('href');
+                        if ($href) {
+                            if (!str_contains($href, 'http')) {
+                                $href = str_replace($lang . '/', '', $href);
+                                $href = $lang . '/' . $href;
+                            } else if ($href == Environment::get('base')) {
+                                $href = Environment::get('base') . $lang . '/';
+                            } else if (str_starts_with($href, Environment::get('base'))) {
+                                $href = str_replace(Environment::get('base'), Environment::get('base') . $lang . '/', $href);
+                            }
+                            $hrefs[] = $href;
                         }
-                        $hrefs[] = $href;
                     }
                 }
 
