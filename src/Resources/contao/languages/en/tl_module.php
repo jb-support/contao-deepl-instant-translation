@@ -2,6 +2,7 @@
 $GLOBALS['TL_LANG']['FMD']['language_switcher_module'] = ['Translation Language Switcher', ''];
 
 $GLOBALS['TL_LANG']['tl_module']['original_language'] = ['Original Language', 'Original language of the page, e.g.: English (en)'];
+$GLOBALS['TL_LANG']['tl_module']['look_legend'] = 'Appearance';
 $GLOBALS['TL_LANG']['tl_module']['usage_legend'] = 'Usage Information';
 
 $GLOBALS['TL_LANG']['tl_module']['deepl_key'] = ['DeepL API Key', 'e.g.: 6413******3:fx'];
@@ -15,6 +16,10 @@ $GLOBALS['TL_LANG']['tl_module']['usage_info']['no_key'] = 'No DeepL API key pro
 $GLOBALS['TL_LANG']['tl_module']['usage_info']['characters'] = 'Characters: %s / %s';
 $GLOBALS['TL_LANG']['tl_module']['usage_info']['times'] = 'Start time: %s <br> End time: %s';
 $GLOBALS['TL_LANG']['tl_module']['usage_info']['plan'] = 'Current Plan: %s';
+
+$GLOBALS['TL_LANG']['tl_module']['element_label_type'] = ['Label Type', 'Choose the type of label to display (Short: EN, DE or Long: English, Deutsch)'];
+$GLOBALS['TL_LANG']['tl_module']['element_label_type']['short'] = 'Short Label';
+$GLOBALS['TL_LANG']['tl_module']['element_label_type']['long'] = 'Long Label';
 
 $GLOBALS['TL_LANG']['lang']['ar'] = 'Arabic';
 $GLOBALS['TL_LANG']['lang']['bg'] = 'Bulgarian';

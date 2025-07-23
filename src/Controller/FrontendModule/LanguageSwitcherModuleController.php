@@ -25,11 +25,15 @@ class LanguageSwitcherModuleController extends AbstractFrontendModuleController
         $registry->setKey($model->deepl_key);
 
         $enabledLanguages = unserialize($model->languages);
-        $languagesArr = [$model->original_language => Settings::getLanguageString($model->original_language)];
+
+        $short_labels = $model->element_label_type == 'short';
+
+        $languagesArr = [$model->original_language => $short_labels ? strtoupper($model->original_language) : Settings::getLanguageString($model->original_language)];
 
         foreach ($enabledLanguages as $lang) {
-            $languagesArr[$lang] = Settings::getLanguageString($lang);
+            $languagesArr[$lang] = $short_labels ? strtoupper($lang) : Settings::getLanguageString($lang);
         }
+
         $translationInProgressStrings = Settings::getTranslatingInProgressStrings();
 
         $agentLanguage = $this->getAgentLanguage($model);

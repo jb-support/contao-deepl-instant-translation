@@ -44,9 +44,9 @@ $GLOBALS['TL_DCA']['tl_module']['fields']['usage_info'] = [
 $GLOBALS['TL_DCA']['tl_module']['fields']['in_url'] = [
     'exclude'                 => true,
     'inputType'               => 'checkbox',
-    'eval'                    => array('tl_class' => 'w50'),
+    'eval'                    => ['tl_class' => 'w50'],
     'sql'                     => "TINYINT(1) NULL default '1'",
-    'save_callback'           => array(array('translation_module', 'invalidateModuleCookies'))
+    'save_callback'           => [['translation_module', 'invalidateModuleCookies']]
 ];
 
 $GLOBALS['TL_DCA']['tl_module']['fields']['element_type'] = [
@@ -60,8 +60,22 @@ $GLOBALS['TL_DCA']['tl_module']['fields']['element_type'] = [
     'sql' => "varchar(10) NOT NULL default 'select'",
 ];
 
+$GLOBALS['TL_DCA']['tl_module']['fields']['element_label_type'] = [
+    'exclude' => true,
+    'inputType' => 'radio',
+    'options' => [
+        'short' => 'Short',
+        'long' => 'Long'
+    ],
+    'options_callback' => [Settings::class, 'getElementLabelTypes'],
+    'eval' => [
+        'tl_class' => 'w50',
+    ],
+    'sql' => "varchar(10) NOT NULL default 'long'",
+];
+
 $GLOBALS['TL_DCA']['tl_module']['palettes']['language_switcher_module'] =
-    '{title_legend},name, type, deepl_key, original_language, element_type, show_modal, in_url, languages; {usage_legend},usage_info';
+    '{title_legend},name, type, deepl_key, original_language,  in_url, languages; {look_legend}, element_type, show_modal, element_label_type; {usage_legend},usage_info';
 
 class translation_module
 {

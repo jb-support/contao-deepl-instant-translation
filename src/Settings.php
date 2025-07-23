@@ -100,4 +100,12 @@ class Settings
 		}
 		return $result;
 	}
+
+	public static function getElementLabelTypes()
+	{
+		return [
+			'short' => $GLOBALS['TL_LANG']['tl_module']['element_label_type']['short'],
+			'long' => $GLOBALS['TL_LANG']['tl_module']['element_label_type']['long']
+		];
+	}
 }
