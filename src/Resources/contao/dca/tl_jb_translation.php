@@ -119,14 +119,12 @@ class tl_jb_translation extends \Contao\Backend
 	{
 		$pageModel = PageModel::findById($row['pid']);
 		$url = '';
-		try {
+
+		if($pageModel) {
 			$url = $pageModel->getFrontendUrl();
-		} catch (\Exception $e) {
-			// Handle exception if needed
 		}
 
-
-		$row['pid'] = $pageModel ? "<a href='" . $url . "' target='_blank'>" . $pageModel->title . "</a>" : 'Page not found';
+		$row['pid'] = $pageModel ? "<a href='" . $url . "' target='_blank'>" . $pageModel->title . "</a>" : '-';
 		$row['original_string'] = $this->truncateString($row['original_string'], 10);
 		$row['translated_string'] = $this->truncateString($row['translated_string'], 10);
 
