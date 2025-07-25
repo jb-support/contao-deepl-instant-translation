@@ -28,9 +28,12 @@ class OutputFrontendTemplateListener
 
             $request = System::getContainer()->get('request_stack')->getCurrentRequest();
             $domain = $request->getSchemeAndHttpHost();
+            $pathInfo = $request->getPathInfo();
             $lang = $request->attributes->get('language_prefix') ?? $originalLanguage;
 
-            $buffer = $this->addLanghref($domain, $enabledLanguages, $buffer);
+            if($this->registry->getShowInUrl()) {
+                $buffer = $this->addLanghref($domain, $pathInfo, $enabledLanguages, $buffer);
+            }
 
             if (empty($enabledLanguages) || !$this->languageEnabled($lang, $enabledLanguages)) {
                 return $buffer;
@@ -148,12 +151,12 @@ class OutputFrontendTemplateListener
         return isset($languagesArr[$lang]);
     }
 
-    private function addLanghref($domain, $enabledLanguages, $buffer)
+    private function addLanghref($domain, $pathInfo, $enabledLanguages, $buffer)
     {
-        $hreflangLinks = ['<link rel="alternate" hreflang="x-default" href="' . htmlspecialchars(rtrim($domain, '/') . '/') . '">'];
+        $hreflangLinks = ['<link rel="alternate" hreflang="x-default" href="' . htmlspecialchars(rtrim($domain, '/') . '/' . ltrim($pathInfo, '/')) . '">'];
 
         foreach ($enabledLanguages as $code => $label) {
-            $href = rtrim($domain, '/') . '/' . $code . '/';
+            $href = rtrim($domain, '/') . '/' . $code . '/' . ltrim($pathInfo, '/');
             $hreflangLinks[] = '<link rel="alternate" hreflang="' . htmlspecialchars($code) . '" href="' . htmlspecialchars($href) . '">';
         }
         $hreflangLinks = implode("\n", $hreflangLinks);
