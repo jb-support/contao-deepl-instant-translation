@@ -3,6 +3,7 @@
 namespace JBSupport\ContaoDeeplInstantTranslationBundle\Controller;
 
 use Contao\CoreBundle\Controller\AbstractController;
+use JBSupport\ContaoDeeplInstantTranslationBundle\Classes\Config;
 use JBSupport\ContaoDeeplInstantTranslationBundle\Model\TranslationModel;
 
 class TranslationController extends AbstractController
@@ -80,9 +81,14 @@ class TranslationController extends AbstractController
         }
     }
 
-    public static function forceTranslate(int $translation_id, string $original_language = 'en', string $deepl_key = '', bool $pro_plan = false): string
+    public static function forceTranslate(int $translation_id): string
     {
         $translation = TranslationModel::findByPk($translation_id);
+
+        $config = new Config();
+        $deepl_key = $config->getDeeplKey();
+        $original_language = $config->getOriginalLanguage();
+        $pro_plan = $config->getIsProPlan();
 
         $text = preg_replace('/(?<= )\s+|\s+(?= )/', '', $translation->original_string); // Remove extra spaces except one on each side if present
 

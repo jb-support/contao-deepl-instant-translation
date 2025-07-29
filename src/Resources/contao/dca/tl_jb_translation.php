@@ -125,12 +125,7 @@ class tl_jb_translation extends \Contao\Backend
 		}
 
 		$id = Input::get('id');
-		$config = new Config();
-		$deepl_key = $config->getDeeplKey();
-		$original_language = $config->getOriginalLanguage();
-		$pro_plan = $config->getIsProPlan();
-
-		TranslationController::forceTranslate($id, $original_language, $deepl_key, $pro_plan);
+		TranslationController::forceTranslate($id);
 
 		\Controller::redirect('/contao?do=translation');
 	}
