@@ -9,16 +9,11 @@ services:
         resource: '../../../src/*'
         exclude: '../../../src/{DependencyInjection,Entity,Resources}'
 
-    JBSupport\ContaoDeeplInstantTranslationBundle\Classes\TranslationSettingsRegistry:
-        public: true
-
     JBSupport\ContaoDeeplInstantTranslationBundle\EventListener\ModifyFrontendPageListener:
         tags:
             - { name: contao.hook, hook: modifyFrontendPage, method: modifyTemplate }
 
     JBSupport\ContaoDeeplInstantTranslationBundle\EventListener\LanguageRedirectListener:
-        arguments:
-            - '@database_connection'
         tags:
             - { name: kernel.event_listener, event: kernel.request, priority: 150 }
 
