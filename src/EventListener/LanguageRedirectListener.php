@@ -2,20 +2,17 @@
 
 namespace JBSupport\ContaoDeeplInstantTranslationBundle\EventListener;
 
-use Contao\CoreBundle\Framework\ContaoFramework;
-use JBSupport\ContaoDeeplInstantTranslationBundle\Classes\TranslationSettingsRegistry;
-use JBSupport\ContaoDeeplInstantTranslationBundle\Settings;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpKernel\Event\RequestEvent;
-use Doctrine\DBAL\Connection;
+use JBSupport\ContaoDeeplInstantTranslationBundle\Classes\Config;
 
 class LanguageRedirectListener
 {
-    private Connection $connection;
+    private Config $config;
 
-    public function __construct(Connection $connection)
+    public function __construct()
     {
-        $this->connection = $connection;
+        $this->config = new Config();
     }
 
     public function onKernelRequest(RequestEvent $event): void
@@ -33,19 +30,17 @@ class LanguageRedirectListener
             return;
         }
 
-        $settings = $this->getModuleSettings($this->connection->createQueryBuilder());
-        $originalLang = $settings['original_language'];
-        $enabledLanguages = $settings['enabled_languages'];
-        $in_url = $settings['in_url'];
-
+        $originalLang = $this->config->getOriginalLanguage();
+        $enabledLanguages = $this->config->getEnabledLanguages();
+        $showInUrl = $this->config->getShowInUrl();
 
         $langNew = $request->request->get('lang');
         $langInUrl = explode('/', $pathInfo)[1];
         $langInUrl = preg_match('/^[a-z]{2}$/', $langInUrl) ? $langInUrl : '';
 
 
-        if (!$in_url) {
-            if($langNew) {
+        if (!$showInUrl) {
+            if ($langNew) {
                 setcookie('language_prefix', $langNew, time() + 3600 * 24 * 30, '/');
                 $request->attributes->set('language_prefix', $langNew);
             } else {
@@ -132,43 +127,6 @@ class LanguageRedirectListener
             }
 
             return;
-        }
-    }
-
-    private function getModuleSettings($qb)
-    {
-
-        if (!isset($_COOKIE['original_language']) || !isset($_COOKIE['enabled_languages']) || !isset($_COOKIE['in_url'])) {
-            $qb = $this->connection->createQueryBuilder();
-            $qb->select('*')
-                ->from('tl_module')
-                ->where('type = :type')
-                ->setParameter('type', 'language_switcher_module');
-
-            $languageSwitcherModule = $qb->executeQuery()->fetchAssociative();
-
-            setcookie('original_language', $languageSwitcherModule['original_language'], time() + 3600 * 24 * 30, '/');
-            setcookie('enabled_languages', $languageSwitcherModule['languages'], time() + 3600 * 24 * 30, '/');
-            setcookie('in_url', (bool) $languageSwitcherModule['in_url'], time() + 3600 * 24 * 30, '/');
-
-            $enabledLanguages = unserialize($languageSwitcherModule['languages']) ?: [];
-            $originalLanguage = $languageSwitcherModule['original_language'];
-
-            $enabledLanguages = array_merge([$originalLanguage], $enabledLanguages);
-
-            $out = [
-                'original_language' => $originalLanguage,
-                'enabled_languages' => $enabledLanguages,
-                'in_url' => (bool) $languageSwitcherModule['in_url'],
-            ];
-
-            return $out;
-        } else {
-            return [
-                'original_language' => $_COOKIE['original_language'],
-                'enabled_languages' => array_merge([$_COOKIE['original_language']], unserialize($_COOKIE['enabled_languages'])),
-                'in_url' => isset($_COOKIE['in_url']) ? (bool)$_COOKIE['in_url'] : true,
-            ];
         }
     }
 }

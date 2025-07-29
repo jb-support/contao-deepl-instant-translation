@@ -12,6 +12,9 @@ use Contao\DC_Table;
 use Contao\PageModel;
 use Contao\DataContainer;
 use Contao\Image;
+use Contao\ModuleModel;
+use JBSupport\ContaoDeeplInstantTranslationBundle\Controller\TranslationController;
+use JBSupport\ContaoDeeplInstantTranslationBundle\Model\TranslationModel;
 
 $GLOBALS['TL_DCA']['tl_jb_translation'] = array(
 	// Config
@@ -24,7 +27,8 @@ $GLOBALS['TL_DCA']['tl_jb_translation'] = array(
 				'id' => 'primary',
 				'hash,language,pid' => 'index'
 			)
-		)
+		),
+		'onload_callback' => array(array('tl_jb_translation', 'handleTranslate')),
 	),
 
 	// List
@@ -115,13 +119,36 @@ $GLOBALS['TL_DCA']['tl_jb_translation'] = array(
 
 class tl_jb_translation extends \Contao\Backend
 {
+	public function handleTranslate()
+	{
+		if (Input::get('key') !== 'translateString' || !Input::get('id')) {
+			return;
+		}
+
+		$id = Input::get('id');
+
+		$module = ModuleModel::findOneByType('language_switcher_module');
+		$pro_plan = $module ? $module->deepl_pro_plan : false;
+		$deepl_key = $module ? $module->deepl_key : '';
+		$original_language = $module ? $module->original_language : 'en';
+
+		TranslationController::forceTranslate($id, $original_language, $deepl_key, $pro_plan);
+
+		\Controller::redirect('/contao?do=translation');
+	}
+
 	public function renderPlainLabel($row, $label, DataContainer $dc = null, $args = null)
 	{
 		$pageModel = PageModel::findById($row['pid']);
 		$url = '';
 
-		if($pageModel) {
-			$url = $pageModel->getFrontendUrl();
+		if ($pageModel) {
+			try {
+				$url = $pageModel->getFrontendUrl();
+			} catch (\Exception $e) {
+				// Handle exception if the page URL cannot be generated
+				$url = '';
+			}
 		}
 
 		$row['pid'] = $pageModel ? "<a href='" . $url . "' target='_blank'>" . $pageModel->title . "</a>" : '-';
@@ -161,7 +188,9 @@ class tl_jb_translation extends \Contao\Backend
 
 	public function deeplIcon($row, $href, $label, $title, $icon, $dc)
 	{
+		$length = strlen($row['original_string']);
+		$confirmJs = "onclick=\"return confirm('This will use {$length} characters from your DeepL API quota. Do you want to continue?');\"";
 		$imagehtml = Image::getHtml($icon, $label, 'class="header_deepl_icon" style="width: 20px; height: 16px;"');
-		return '<a href="' . $this->addToUrl($href . '&id=' . $row['id']) . '" title="' . htmlspecialchars($label) . '" class="header_deepl_icon">' . $imagehtml . '</a>';
+		return '<a href="' . $this->addToUrl($href . '&id=' . $row['id']) . '" title="' . htmlspecialchars($label) . '" class="header_deepl_icon" ' . $confirmJs . '>' . $imagehtml . '</a>';
 	}
 }

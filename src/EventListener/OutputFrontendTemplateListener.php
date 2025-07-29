@@ -5,33 +5,34 @@ namespace JBSupport\ContaoDeeplInstantTranslationBundle\EventListener;
 use Contao\PageModel;
 use Contao\Environment;
 use Contao\System;
-use JBSupport\ContaoDeeplInstantTranslationBundle\Model\TranslationModel;
 use JBSupport\ContaoDeeplInstantTranslationBundle\Controller\TranslationController;
-use JBSupport\ContaoDeeplInstantTranslationBundle\Classes\TranslationSettingsRegistry;
+use JBSupport\ContaoDeeplInstantTranslationBundle\Classes\Config;
 
 class OutputFrontendTemplateListener
 {
-    private TranslationSettingsRegistry $registry;
     private string $DEEPL_KEY;
+    private Config $config;
 
-    public function __construct(TranslationSettingsRegistry $registry)
+    public function __construct()
     {
-        $this->registry = $registry;
-        $this->DEEPL_KEY = $this->registry->getKey() ?? "";
+        $this->config = new Config();
+        $this->DEEPL_KEY = $this->config->getDeeplKey() ?? "";
     }
 
     public function modifyTemplate(string $buffer, string $template): string
     {
         if ($template === 'fe_page' && !empty($this->DEEPL_KEY)) {
-            $enabledLanguages = $this->registry->getEnabledLanguages();
-            $originalLanguage = $this->registry->getOriginalLanguage();
+            $enabledLanguages = $this->config->getEnabledLanguages();
+            $originalLanguage = $this->config->getOriginalLanguage();
+            $proPlan = $this->config->getIsProPlan();
+            $showInUrl = $this->config->getShowInUrl();
 
             $request = System::getContainer()->get('request_stack')->getCurrentRequest();
             $domain = $request->getSchemeAndHttpHost();
             $pathInfo = $request->getPathInfo();
             $lang = $request->attributes->get('language_prefix') ?? $originalLanguage;
 
-            if($this->registry->getShowInUrl()) {
+            if($showInUrl) {
                 $buffer = $this->addLanghref($domain, $pathInfo, $enabledLanguages, $buffer);
             }
 
@@ -50,7 +51,7 @@ class OutputFrontendTemplateListener
                 $linkNodes = $xpath->query('//a[@href]');
                 $hrefs = [];
 
-                $addToUrl = $this->registry->getShowInUrl();
+                $addToUrl = $showInUrl && $lang !== $originalLanguage;
                 if ($addToUrl) {
                     foreach ($linkNodes as $linkNode) {
                         $href = $linkNode->getAttribute('href');
@@ -78,7 +79,7 @@ class OutputFrontendTemplateListener
                 foreach ($inputNodes as $inputNode) {
                     $placeholder = $inputNode->getAttribute('placeholder');
                     if ($placeholder) {
-                        $translatedPlaceholder = TranslationController::translateText($placeholder, $lang, $originalLanguage, $page_id, $this->DEEPL_KEY);
+                        $translatedPlaceholder = TranslationController::translateText($placeholder, $lang, $originalLanguage, $page_id, $this->DEEPL_KEY, false, $proPlan);
                         $inputNode->setAttribute('placeholder', $translatedPlaceholder);
                     }
                 }
@@ -119,7 +120,7 @@ class OutputFrontendTemplateListener
                                 return '#email#';
                             }, $nodeValue);
 
-                            $translatedText = TranslationController::translateText($nodeValue, $lang, $originalLanguage, $page_id, $this->DEEPL_KEY);
+                            $translatedText = TranslationController::translateText($nodeValue, $lang, $originalLanguage, $page_id, $this->DEEPL_KEY, false, $proPlan);
 
                             $translatedText = preg_replace_callback('/###/', function () use (&$numbers) {
                                 return array_shift($numbers);
@@ -148,7 +149,7 @@ class OutputFrontendTemplateListener
 
     private function languageEnabled(string $lang, array $languagesArr): bool
     {
-        return isset($languagesArr[$lang]);
+        return in_array($lang, $languagesArr);
     }
 
     private function addLanghref($domain, $pathInfo, $enabledLanguages, $buffer)

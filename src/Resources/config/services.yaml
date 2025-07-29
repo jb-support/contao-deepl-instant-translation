@@ -13,8 +13,6 @@ services:
         public: true
 
     JBSupport\ContaoDeeplInstantTranslationBundle\EventListener\OutputFrontendTemplateListener:
-        arguments:
-            $registry: '@JBSupport\ContaoDeeplInstantTranslationBundle\Classes\TranslationSettingsRegistry'
         tags:
             - { name: contao.hook, hook: modifyFrontendPage, method: modifyTemplate }
 

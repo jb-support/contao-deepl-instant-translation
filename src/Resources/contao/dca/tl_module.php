@@ -5,9 +5,11 @@ use JBSupport\ContaoDeeplInstantTranslationBundle\Settings;
 $GLOBALS['TL_DCA']['tl_module']['fields']['deepl_key'] = [
     'exclude'                 => true,
     'inputType'               => 'text',
-    'eval'                    => array('maxlength' => 255, 'tl_class' => 'clr w50', 'doNotSaveEmpty' => true),
-    'sql'                     => "varchar(255) NOT NULL default ''"
+    'eval'                    => array('maxlength' => 255, 'tl_class' => 'clr w50', 'doNotSaveEmpty' => true, 'mandatory' => !file_exists(TL_ROOT . '/config/deepl_key.php')),
+    'sql'                     => "varchar(255) NOT NULL default ''",
 ];
+
+$GLOBALS['TL_DCA']['tl_module']['config']['onsubmit_callback'][] = array('translation_module', 'writeConfig');
 
 $GLOBALS['TL_DCA']['tl_module']['fields']['original_language'] = [
     'exclude'                 => true,
@@ -15,7 +17,6 @@ $GLOBALS['TL_DCA']['tl_module']['fields']['original_language'] = [
     'options_callback'        => array(Settings::class, 'getLanguageTranslatedStrings'),
     'eval'                    => array('tl_class' => 'w50', 'chosen' => true, 'mandatory' => true),
     'sql'                     => "varchar(5) NOT NULL default ''",
-    'save_callback'           => array(array('translation_module', 'invalidateModuleCookies'))
 ];
 
 $GLOBALS['TL_DCA']['tl_module']['fields']['languages'] = [
@@ -24,7 +25,6 @@ $GLOBALS['TL_DCA']['tl_module']['fields']['languages'] = [
     'eval'                    => array('multiple' => true, 'tl_class' => 'clr w50', 'mandatory' => true),
     'options_callback'        => array(Settings::class, 'getLanguageTranslatedStrings'),
     'sql'                     => "TEXT NULL",
-    'save_callback'           => array(array('translation_module', 'invalidateModuleCookies'))
 ];
 
 $GLOBALS['TL_DCA']['tl_module']['fields']['show_modal'] = [
@@ -46,7 +46,6 @@ $GLOBALS['TL_DCA']['tl_module']['fields']['in_url'] = [
     'inputType'               => 'checkbox',
     'eval'                    => ['tl_class' => 'w50'],
     'sql'                     => "TINYINT(1) NULL default '1'",
-    'save_callback'           => [['translation_module', 'invalidateModuleCookies']]
 ];
 
 $GLOBALS['TL_DCA']['tl_module']['fields']['element_type'] = [
@@ -58,6 +57,13 @@ $GLOBALS['TL_DCA']['tl_module']['fields']['element_type'] = [
         'chosen' => true,
     ],
     'sql' => "varchar(10) NOT NULL default 'select'",
+];
+
+$GLOBALS['TL_DCA']['tl_module']['fields']['deepl_pro_plan'] = [
+    'exclude'                 => true,
+    'inputType'               => 'checkbox',
+    'eval'                    => array('tl_class' => 'w50'),
+    'sql'                     => "TINYINT(1) NULL default '0'"
 ];
 
 $GLOBALS['TL_DCA']['tl_module']['fields']['element_label_type'] = [
@@ -79,30 +85,62 @@ $GLOBALS['TL_DCA']['tl_module']['palettes']['language_switcher_module'] =
 
 class translation_module
 {
-    public function invalidateModuleCookies($value)
+    public function writeConfig($dc)
     {
-        if (isset($_COOKIE['original_language'])) {
-            setcookie('original_language', '', time() - 3600, '/');
-        }
-        if (isset($_COOKIE['enabled_languages'])) {
-            setcookie('enabled_languages', '', time() - 3600, '/');
-        }
-        if (isset($_COOKIE['in_url'])) {
-            setcookie('in_url', '', time() - 3600, '/');
+        $fields = ["original_language", "languages", "in_url", "deepl_key", "element_type", "show_modal", "element_label_type"];
+        $configPath = TL_ROOT . '/config/translation_extension_config.php';
+        $existingConfig = file_exists($configPath) ? @include($configPath) : [];
+        $db = \Contao\Database::getInstance();
+
+        foreach ($fields as $field) {
+            if (isset($dc->activeRecord->{$field})) {
+                if ($field == 'deepl_key') {
+                    if (empty($dc->activeRecord->{$field}) && $existingConfig[$field]) {
+                        $config[$field] = $existingConfig[$field] ?? '';
+                        $db->query("UPDATE tl_module SET " . $field . "='' WHERE id=" . $dc->activeRecord->id);
+                    } else if (empty($dc->activeRecord->{$field}) && !$existingConfig[$field]) {
+                        $config[$field] = '';
+                        $db->query("UPDATE tl_module SET " . $field . "='' WHERE id=" . $dc->activeRecord->id);
+                    } else {
+                        $config[$field] = $dc->activeRecord->{$field};
+                        $db->query("UPDATE tl_module SET " . $field . "='' WHERE id=" . $dc->activeRecord->id);
+                    }
+                    continue;
+                }
+
+                $config[$field] = $dc->activeRecord->{$field};
+            } else {
+                $config[$field] = '';
+            }
         }
 
-        return $value;
+
+        $content = "<?php\nreturn " . var_export($config, true) . ";";
+
+        file_put_contents($configPath, $content);
+
+        return '';
     }
 
     public function getUsageInfo($dc)
     {
-        $deepl_key = $dc->activeRecord->deepl_key;
+        $configPath = TL_ROOT . '/config/deepl_key.php';
+        $deepl_key = file_exists($configPath) ? @include($configPath) : '';
 
         if (empty($deepl_key)) {
             return '<div class="tl_info">' . $GLOBALS['TL_LANG']['tl_module']['usage_info']['no_key'] . '</div>';
         }
 
         $response = $this->fetchUsageInfo($deepl_key);
+
+        $pro_plan = $response['plan'] == "API Pro" ? true : false;
+
+        if ($pro_plan != (bool) $dc->activeRecord->deepl_pro_plan) {
+            $dc->activeRecord->deepl_pro_plan = $pro_plan;
+            $model = ModuleModel::findByPk($dc->activeRecord->id);
+            $model->deepl_pro_plan = $pro_plan;
+            $model->save();
+        }
 
         return $this->generateUsageString($response);
     }
