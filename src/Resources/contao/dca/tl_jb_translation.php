@@ -8,11 +8,12 @@
  * @license LGPL-3.0-or-later
  */
 
+use Contao\Image;
+use Contao\Input;
 use Contao\DC_Table;
 use Contao\PageModel;
+use Contao\Controller;
 use Contao\DataContainer;
-use Contao\Image;
-use JBSupport\ContaoDeeplInstantTranslationBundle\Classes\Config;
 use JBSupport\ContaoDeeplInstantTranslationBundle\Controller\TranslationController;
 
 $GLOBALS['TL_DCA']['tl_jb_translation'] = array(
@@ -105,7 +106,6 @@ $GLOBALS['TL_DCA']['tl_jb_translation'] = array(
 			'inputType'               => 'textarea',
 			'eval' 				      => array('disabled' => true, 'allowHtml' => true, 'preserveTags' => true, 'tl_class' => 'clr'),
 			'sql'                     => "text NULL default NULL",
-			// 'input_field_callback'    => ['tl_jb_translation', 'getHtmlString'],
 		),
 		'translated_string' => array(
 			'search' 				  => true,
@@ -127,7 +127,7 @@ class tl_jb_translation extends \Contao\Backend
 		$id = Input::get('id');
 		TranslationController::forceTranslate($id);
 
-		\Controller::redirect('/contao?do=translation');
+		Controller::redirect('/contao?do=translation');
 	}
 
 	public function renderPlainLabel($row, $label, DataContainer $dc = null, $args = null)
@@ -139,7 +139,6 @@ class tl_jb_translation extends \Contao\Backend
 			try {
 				$url = $pageModel->getFrontendUrl();
 			} catch (\Exception $e) {
-				// Handle exception if the page URL cannot be generated
 				$url = '';
 			}
 		}
