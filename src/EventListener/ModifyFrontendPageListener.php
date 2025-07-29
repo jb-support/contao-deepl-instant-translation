@@ -8,7 +8,7 @@ use Contao\System;
 use JBSupport\ContaoDeeplInstantTranslationBundle\Controller\TranslationController;
 use JBSupport\ContaoDeeplInstantTranslationBundle\Classes\Config;
 
-class OutputFrontendTemplateListener
+class ModifyFrontendPageListener
 {
     private string $DEEPL_KEY;
     private Config $config;
@@ -24,7 +24,6 @@ class OutputFrontendTemplateListener
         if ($template === 'fe_page' && !empty($this->DEEPL_KEY)) {
             $enabledLanguages = $this->config->getEnabledLanguages();
             $originalLanguage = $this->config->getOriginalLanguage();
-            $proPlan = $this->config->getIsProPlan();
             $showInUrl = $this->config->getShowInUrl();
 
             $request = System::getContainer()->get('request_stack')->getCurrentRequest();
@@ -79,7 +78,7 @@ class OutputFrontendTemplateListener
                 foreach ($inputNodes as $inputNode) {
                     $placeholder = $inputNode->getAttribute('placeholder');
                     if ($placeholder) {
-                        $translatedPlaceholder = TranslationController::translateText($placeholder, $lang, $originalLanguage, $page_id, $this->DEEPL_KEY, false, $proPlan);
+                        $translatedPlaceholder = TranslationController::translateText($placeholder, $lang, $page_id);
                         $inputNode->setAttribute('placeholder', $translatedPlaceholder);
                     }
                 }
@@ -120,7 +119,7 @@ class OutputFrontendTemplateListener
                                 return '#email#';
                             }, $nodeValue);
 
-                            $translatedText = TranslationController::translateText($nodeValue, $lang, $originalLanguage, $page_id, $this->DEEPL_KEY, false, $proPlan);
+                            $translatedText = TranslationController::translateText($nodeValue, $lang, $page_id);
 
                             $translatedText = preg_replace_callback('/###/', function () use (&$numbers) {
                                 return array_shift($numbers);
@@ -156,9 +155,9 @@ class OutputFrontendTemplateListener
     {
         $hreflangLinks = ['<link rel="alternate" hreflang="x-default" href="' . htmlspecialchars(rtrim($domain, '/') . '/' . ltrim($pathInfo, '/')) . '">'];
 
-        foreach ($enabledLanguages as $code => $label) {
-            $href = rtrim($domain, '/') . '/' . $code . '/' . ltrim($pathInfo, '/');
-            $hreflangLinks[] = '<link rel="alternate" hreflang="' . htmlspecialchars($code) . '" href="' . htmlspecialchars($href) . '">';
+        foreach ($enabledLanguages as $label) {
+            $href = rtrim($domain, '/') . '/' . $label . '/' . ltrim($pathInfo, '/');
+            $hreflangLinks[] = '<link rel="alternate" hreflang="' . htmlspecialchars($label) . '" href="' . htmlspecialchars($href) . '">';
         }
         $hreflangLinks = implode("\n", $hreflangLinks);
         $buffer = str_replace('</head>', $hreflangLinks . '</head>', $buffer);
