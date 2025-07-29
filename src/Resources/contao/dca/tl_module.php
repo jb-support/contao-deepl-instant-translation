@@ -6,7 +6,7 @@ use JBSupport\ContaoDeeplInstantTranslationBundle\Settings;
 $GLOBALS['TL_DCA']['tl_module']['fields']['deepl_key'] = [
     'exclude'                 => true,
     'inputType'               => 'text',
-    'eval'                    => array('maxlength' => 255, 'tl_class' => 'clr w50', 'doNotSaveEmpty' => true, 'placeholder' => file_exists(__DIR__ . "../../config/config.php") ? '********************' : '', 'mandatory' => !file_exists(__DIR__ . "../../config/config.php")),
+    'eval'                    => array('maxlength' => 255, 'tl_class' => 'clr w50', 'doNotSaveEmpty' => true),
     'sql'                     => "varchar(255) NOT NULL default ''",
 ];
 
