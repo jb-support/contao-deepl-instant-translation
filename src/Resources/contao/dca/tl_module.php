@@ -1,5 +1,6 @@
 <?php
 
+use JBSupport\ContaoDeeplInstantTranslationBundle\Classes\Config;
 use JBSupport\ContaoDeeplInstantTranslationBundle\Settings;
 
 $GLOBALS['TL_DCA']['tl_module']['fields']['deepl_key'] = [
@@ -88,10 +89,12 @@ class translation_module
     public function writeConfig($dc)
     {
         $fields = ["original_language", "languages", "in_url", "deepl_key", "element_type", "show_modal", "element_label_type"];
-        $configPath = TL_ROOT . '/config/translation_extension_config.php';
+        $configObj = new Config();
+        $configPath = $configObj->getConfigPath();
         $existingConfig = file_exists($configPath) ? @include($configPath) : [];
         $db = \Contao\Database::getInstance();
 
+        $config = [];
         foreach ($fields as $field) {
             if (isset($dc->activeRecord->{$field})) {
                 if ($field == 'deepl_key') {
@@ -124,8 +127,8 @@ class translation_module
 
     public function getUsageInfo($dc)
     {
-        $configPath = TL_ROOT . '/config/deepl_key.php';
-        $deepl_key = file_exists($configPath) ? @include($configPath) : '';
+        $config = new Config();
+        $deepl_key = $config->getDeeplKey();
 
         if (empty($deepl_key)) {
             return '<div class="tl_info">' . $GLOBALS['TL_LANG']['tl_module']['usage_info']['no_key'] . '</div>';

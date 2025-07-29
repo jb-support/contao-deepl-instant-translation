@@ -6,11 +6,17 @@ class Config
 {
 
     private array $config;
+    private string $configPath;
 
     public function __construct()
     {
-        $configPath = __DIR__.'/../../../../../config/translation_extension_config.php';
-        $this->config = file_exists($configPath) ? @include($configPath) : [];
+        $this->configPath = __DIR__ . "/../Resources/config/config.php";
+
+        if (file_exists($this->configPath)) {
+            $this->config = @include($this->configPath);
+        } else {
+            $this->config = [];
+        }
     }
 
     public function getRaw($field): array
@@ -54,5 +60,10 @@ class Config
     public function getShowModal(): ?bool
     {
         return $this->config['show_modal'] ?? false;
+    }
+
+    public function getConfigPath(): string
+    {
+        return $this->configPath;
     }
 }

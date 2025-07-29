@@ -9,7 +9,6 @@ use JBSupport\ContaoDeeplInstantTranslationBundle\Classes\Config;
 class LanguageRedirectListener
 {
     private Config $config;
-
     public function __construct()
     {
         $this->config = new Config();
@@ -27,6 +26,10 @@ class LanguageRedirectListener
 
         if (str_contains($pathInfo, '/contao') || str_contains($pathInfo, '/contao.php')) {
             // Skip Contao backend requests
+            return;
+        }
+
+        if(empty($this->config)) {
             return;
         }
 
