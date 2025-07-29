@@ -31,11 +31,11 @@ class ModifyFrontendPageListener
             $pathInfo = $request->getPathInfo();
             $lang = $request->attributes->get('language_prefix') ?? $originalLanguage;
 
-            if($showInUrl) {
+            if ($showInUrl) {
                 $buffer = $this->addLanghref($domain, $pathInfo, $enabledLanguages, $buffer);
             }
 
-            if (empty($enabledLanguages) || !$this->languageEnabled($lang, $enabledLanguages)) {
+            if (empty($enabledLanguages) || !in_array($lang, $enabledLanguages)) {
                 return $buffer;
             }
 
@@ -144,11 +144,6 @@ class ModifyFrontendPageListener
         }
 
         return $buffer;
-    }
-
-    private function languageEnabled(string $lang, array $languagesArr): bool
-    {
-        return in_array($lang, $languagesArr);
     }
 
     private function addLanghref($domain, $pathInfo, $enabledLanguages, $buffer)
