@@ -12,9 +12,8 @@ use Contao\DC_Table;
 use Contao\PageModel;
 use Contao\DataContainer;
 use Contao\Image;
-use Contao\ModuleModel;
+use JBSupport\ContaoDeeplInstantTranslationBundle\Classes\Config;
 use JBSupport\ContaoDeeplInstantTranslationBundle\Controller\TranslationController;
-use JBSupport\ContaoDeeplInstantTranslationBundle\Model\TranslationModel;
 
 $GLOBALS['TL_DCA']['tl_jb_translation'] = array(
 	// Config
@@ -126,11 +125,10 @@ class tl_jb_translation extends \Contao\Backend
 		}
 
 		$id = Input::get('id');
-
-		$module = ModuleModel::findOneByType('language_switcher_module');
-		$pro_plan = $module ? $module->deepl_pro_plan : false;
-		$deepl_key = $module ? $module->deepl_key : '';
-		$original_language = $module ? $module->original_language : 'en';
+		$config = new Config();
+		$deepl_key = $config->getDeeplKey();
+		$original_language = $config->getOriginalLanguage();
+		$pro_plan = $config->getIsProPlan();
 
 		TranslationController::forceTranslate($id, $original_language, $deepl_key, $pro_plan);
 

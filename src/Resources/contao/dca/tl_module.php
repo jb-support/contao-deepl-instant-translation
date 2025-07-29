@@ -6,7 +6,7 @@ use JBSupport\ContaoDeeplInstantTranslationBundle\Settings;
 $GLOBALS['TL_DCA']['tl_module']['fields']['deepl_key'] = [
     'exclude'                 => true,
     'inputType'               => 'text',
-    'eval'                    => array('maxlength' => 255, 'tl_class' => 'clr w50', 'doNotSaveEmpty' => true, 'mandatory' => !file_exists(TL_ROOT . '/config/deepl_key.php')),
+    'eval'                    => array('maxlength' => 255, 'tl_class' => 'clr w50', 'doNotSaveEmpty' => true, 'placeholder' => file_exists(__DIR__ . "../../config/config.php") ? '********************' : '', 'mandatory' => !file_exists(__DIR__ . "../../config/config.php")),
     'sql'                     => "varchar(255) NOT NULL default ''",
 ];
 
@@ -88,7 +88,7 @@ class translation_module
 {
     public function writeConfig($dc)
     {
-        $fields = ["original_language", "languages", "in_url", "deepl_key", "element_type", "show_modal", "element_label_type"];
+        $fields = ["deepl_key", "deepl_pro_plan", "original_language", "languages", "in_url", "element_type", "show_modal", "element_label_type"];
         $configObj = new Config();
         $configPath = $configObj->getConfigPath();
         $existingConfig = file_exists($configPath) ? @include($configPath) : [];
@@ -111,7 +111,7 @@ class translation_module
                     continue;
                 }
 
-                $config[$field] = $dc->activeRecord->{$field};
+                $config[$field] = is_numeric($dc->activeRecord->{$field}) ? (bool) $dc->activeRecord->{$field} : $dc->activeRecord->{$field};
             } else {
                 $config[$field] = '';
             }
@@ -140,9 +140,6 @@ class translation_module
 
         if ($pro_plan != (bool) $dc->activeRecord->deepl_pro_plan) {
             $dc->activeRecord->deepl_pro_plan = $pro_plan;
-            $model = ModuleModel::findByPk($dc->activeRecord->id);
-            $model->deepl_pro_plan = $pro_plan;
-            $model->save();
         }
 
         return $this->generateUsageString($response);
