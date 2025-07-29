@@ -9,7 +9,7 @@ class Config
 
     public function __construct()
     {
-        $this->config = @include(__DIR__.'/../../../../../config/translation_extension_config.php');
+        $this->config = @include(__DIR__.'/../../../../../config/translation_extension_config.php') ?? [];
     }
 
     public function getRaw($field): array
