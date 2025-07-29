@@ -66,4 +66,9 @@ class Config
     {
         return $this->configPath;
     }
+
+    public function getApiUrl(): string
+    {
+        return $this->getIsProPlan() ? "https://api.deepl.com/v2/translate" : "https://api-free.deepl.com/v2/translate";
+    }
 }
