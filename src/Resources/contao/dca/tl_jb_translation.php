@@ -183,7 +183,16 @@ class tl_jb_translation extends Backend
 	public function deeplIcon($row, $href, $label, $title, $icon, $dc)
 	{
 		$length = strlen($row['original_string']);
-		$confirmJs = "onclick=\"return confirm('This action will use {$length} characters from your DeepL API quota. Are you sure you want to continue?');\"";
+		$lengthString = sprintf(
+			$GLOBALS['TL_LANG']['tl_jb_translation']['usage_alert'],
+			$length
+		);
+
+		$confirmJs = sprintf(
+			'onclick="return confirm(\'%s\');"',
+			$lengthString
+		);
+
 		$imagehtml = Image::getHtml($icon, $label, 'class="header_deepl_icon" style="width: 16px; height: 16px;margin-left: -2px; margin-right: 2px;"');
 		return '<a href="' . $this->addToUrl($href . '&id=' . $row['id']) . '" title="' . htmlspecialchars($label) . '" class="header_deepl_icon" ' . $confirmJs . '>' . $imagehtml . '</a>';
 	}
