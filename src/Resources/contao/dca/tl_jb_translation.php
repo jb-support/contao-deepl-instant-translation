@@ -10,6 +10,7 @@
 
 use Contao\Image;
 use Contao\Input;
+use Contao\Backend;
 use Contao\DC_Table;
 use Contao\PageModel;
 use Contao\Controller;
@@ -116,15 +117,16 @@ $GLOBALS['TL_DCA']['tl_jb_translation'] = array(
 	)
 );
 
-class tl_jb_translation extends \Contao\Backend
+class tl_jb_translation extends Backend
 {
 	public function handleTranslate()
 	{
-		if (Input::get('key') !== 'translateString' || !Input::get('id')) {
+		$id = Input::get('id');
+
+		if (Input::get('key') !== 'translateString' || !$id) {
 			return;
 		}
 
-		$id = Input::get('id');
 		TranslationController::forceTranslate($id);
 
 		Controller::redirect('/contao?do=translation');
@@ -181,8 +183,8 @@ class tl_jb_translation extends \Contao\Backend
 	public function deeplIcon($row, $href, $label, $title, $icon, $dc)
 	{
 		$length = strlen($row['original_string']);
-		$confirmJs = "onclick=\"return confirm('This will use {$length} characters from your DeepL API quota. Do you want to continue?');\"";
-		$imagehtml = Image::getHtml($icon, $label, 'class="header_deepl_icon" style="width: 20px; height: 16px;"');
+		$confirmJs = "onclick=\"return confirm('This action will use {$length} characters from your DeepL API quota. Are you sure you want to continue?');\"";
+		$imagehtml = Image::getHtml($icon, $label, 'class="header_deepl_icon" style="width: 16px; height: 16px;margin-left: -2px; margin-right: 2px;"');
 		return '<a href="' . $this->addToUrl($href . '&id=' . $row['id']) . '" title="' . htmlspecialchars($label) . '" class="header_deepl_icon" ' . $confirmJs . '>' . $imagehtml . '</a>';
 	}
 }

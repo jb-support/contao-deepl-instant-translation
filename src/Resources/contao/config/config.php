@@ -1,5 +1,6 @@
 <?php
 
+use Contao\ArrayUtil;
 use JBSupport\ContaoDeeplInstantTranslationBundle\Model\TranslationModel;
 use JBSupport\ContaoDeeplInstantTranslationBundle\Controller\FrontendModule\LanguageSwitcherModuleController;
 
@@ -7,14 +8,17 @@ $GLOBALS['FMD']['jb_translation']['language_switcher'] = LanguageSwitcherModuleC
 
 $GLOBALS['TL_MODELS']['tl_jb_translation'] = TranslationModel::class;
 
-\Contao\ArrayUtil::arrayInsert(
+if (TL_MODE === 'BE') {
+    $GLOBALS['TL_CSS'][] = 'bundles/jbsupportcontaodeeplinstanttranslation/css/backend.css|static';
+}
+
+ArrayUtil::arrayInsert(
     $GLOBALS['BE_MOD'],
-    5,
-    [
-        'content' => [
-            'translation' => [
-                'tables' => ['tl_jb_translation'],
-            ],
+    array_search('content', array_keys($GLOBALS['BE_MOD'])) + 1,
+    ['jb_translations' => [
+        'translation' => [
+            'tables' => ['tl_jb_translation'],
+            'icon'   => 'bundles/jbsupportcontaodeeplinstanttranslation/deepl.svg',
         ],
-    ]
+    ]]
 );
