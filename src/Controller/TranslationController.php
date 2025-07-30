@@ -61,6 +61,7 @@ class TranslationController extends AbstractController
         $deeplKey = $config->getDeeplKey();
         $sourceLang = $config->getOriginalLanguage();
         $url = $config->getApiUrl();
+        $formality = $config->getFormality();
 
         if (empty($deeplKey)) {
             return $text;
@@ -79,6 +80,7 @@ class TranslationController extends AbstractController
             "text" => [$text],
             "target_lang" => Settings::getVariant($targetLang),
             "source_lang" => $sourceLang,
+            'formality' => $formality,
             'tag_handling' => 'html'
         ]));
 

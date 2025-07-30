@@ -23,7 +23,7 @@ $GLOBALS['TL_DCA']['tl_module']['fields']['original_language'] = [
 $GLOBALS['TL_DCA']['tl_module']['fields']['languages'] = [
     'exclude'                 => true,
     'inputType'               => 'checkboxWizard',
-    'eval'                    => array('multiple' => true, 'tl_class' => 'clr w50', 'mandatory' => true),
+    'eval'                    => array('multiple' => true, 'tl_class' => 'w50', 'mandatory' => true),
     'options_callback'        => array(Settings::class, 'getLanguageTranslatedStrings'),
     'sql'                     => "TEXT NULL",
 ];
@@ -88,8 +88,17 @@ $GLOBALS['TL_DCA']['tl_module']['fields']['element_label_type'] = [
     'sql' => "varchar(10) NOT NULL default 'long'",
 ];
 
+$GLOBALS['TL_DCA']['tl_module']['fields']['formality'] = [
+    'exclude' => false,
+    'inputType' => 'radio',
+    'options' => ['prefer_more' => 'More formal', 'default' => 'Default', 'prefer_less' => 'Less formal'],
+    'options_callback' => [Settings::class, 'getFormalityTypes'],
+    'eval' => ['tl_class' => 'w50'],
+    'sql' => "varchar(12) NOT NULL default 'default'",
+];
+
 $GLOBALS['TL_DCA']['tl_module']['palettes']['language_switcher_module'] =
-    '{title_legend},name, type, deepl_key, in_url, agent_redirect; {languages_legend}, original_language, languages; {look_legend}, element_type, show_modal, element_label_type; {usage_legend},usage_info';
+    '{title_legend},name, type, deepl_key, in_url, agent_redirect; {languages_legend}, languages, original_language, formality; {look_legend}, element_type, show_modal, element_label_type; {usage_legend},usage_info';
 
 class translation_module
 {

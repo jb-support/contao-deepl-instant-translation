@@ -7,7 +7,7 @@ $GLOBALS['TL_LANG']['tl_module']['usage_legend'] = 'Nutzungsinformationen';
 $GLOBALS['TL_LANG']['tl_module']['languages_legend'] = 'Sprachen';
 
 $GLOBALS['TL_LANG']['tl_module']['deepl_key'] = ['DeepL API Schlüssel', 'z.B.: 6413******3:fx'];
-$GLOBALS['TL_LANG']['tl_module']['languages'] = ['Aktivierte Sprachen', 'Sprachen, die im Switcher angezeigt werden sollen.'];
+$GLOBALS['TL_LANG']['tl_module']['languages'] = ['Zielsprachen', 'Sprachen, die im Switcher angezeigt werden sollen.'];
 $GLOBALS['TL_LANG']['tl_module']['show_modal'] = ['Zeige Modal', 'Zeige ein Modal während der Übersetzung'];
 $GLOBALS['TL_LANG']['tl_module']['element_type'] = ['Elementtyp', 'Wählen Sie den Typ des Elements, das angezeigt werden soll. (Select, Radio oder Buttons)'];
 $GLOBALS['TL_LANG']['tl_module']['in_url'] = ['In URL', 'Füge die Sprache in die URL ein, z.B.: /en/'];
@@ -15,7 +15,10 @@ $GLOBALS['TL_LANG']['tl_module']['element_label_type'] = ['Labeltyp', 'Wählen S
 $GLOBALS['TL_LANG']['tl_module']['element_label_type']['short'] = 'Kurzes Label';
 $GLOBALS['TL_LANG']['tl_module']['element_label_type']['long'] = 'Langes Label';
 $GLOBALS['TL_LANG']['tl_module']['agent_redirect'] = ['Agent-Language Weiterleitung', 'Leite beim Erstbesuch anhand der Agent-Language (Browser language) weiter.'];
-
+$GLOBALS['TL_LANG']['tl_module']['formality'] = ['Formalität', 'Wählen Sie die Formalität der Übersetzung. Nicht bei allen Sprachen verfügbar.'];
+$GLOBALS['TL_LANG']['tl_module']['formality']['prefer_more'] = 'Formeller';
+$GLOBALS['TL_LANG']['tl_module']['formality']['prefer_less'] = 'Weniger formell';
+$GLOBALS['TL_LANG']['tl_module']['formality']['default'] = 'Standard';
 
 $GLOBALS['TL_LANG']['tl_module']['usage_info']['label'] = 'DeepL-API-Nutzungsinformationen';
 $GLOBALS['TL_LANG']['tl_module']['usage_info']['no_key'] = 'Kein DeepL API Schlüssel angegeben.';

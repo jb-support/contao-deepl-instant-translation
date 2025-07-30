@@ -115,6 +115,15 @@ class Settings
 		];
 	}
 
+	public static function getFormalityTypes()
+	{
+		return [
+			'prefer_more' => $GLOBALS['TL_LANG']['tl_module']['formality']['prefer_more'],
+			'default' => $GLOBALS['TL_LANG']['tl_module']['formality']['default'],
+			'prefer_less' => $GLOBALS['TL_LANG']['tl_module']['formality']['prefer_less']
+		];
+	}
+
 	public static function getVariant($lang)
 	{
 		return self::$defaultVariants[$lang] ?? $lang;

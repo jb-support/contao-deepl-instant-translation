@@ -13,6 +13,7 @@ class Config
         'agent_redirect',
         'element_type',
         'element_label_type',
+        'formality'
     ];
 
     private array $config;
@@ -90,5 +91,10 @@ class Config
     public function getFields(): array
     {
         return self::FIELDS;
+    }
+
+    public function getFormality(): string
+    {
+        return $this->config['formality'] ?? 'default';
     }
 }
