@@ -4,6 +4,16 @@ namespace JBSupport\ContaoDeeplInstantTranslationBundle\Classes;
 
 class Config
 {
+    private const FIELDS = [
+        'deepl_key',
+        'original_language',
+        'languages',
+        'show_modal',
+        'in_url',
+        'agent_redirect',
+        'element_type',
+        'element_label_type',
+    ];
 
     private array $config;
     private string $configPath;
@@ -70,5 +80,15 @@ class Config
     public function getApiUrl(): string
     {
         return $this->getIsProPlan() ? "https://api.deepl.com/v2/translate" : "https://api-free.deepl.com/v2/translate";
+    }
+
+    public function getRedirectAgent(): bool
+    {
+        return $this->config['agent_redirect'] ?? false;
+    }
+
+    public function getFields(): array
+    {
+        return self::FIELDS;
     }
 }

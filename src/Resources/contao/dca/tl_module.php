@@ -49,6 +49,13 @@ $GLOBALS['TL_DCA']['tl_module']['fields']['in_url'] = [
     'sql'                     => "TINYINT(1) NULL default '1'",
 ];
 
+$GLOBALS['TL_DCA']['tl_module']['fields']['agent_redirect'] = [
+    'exclude'                 => true,
+    'inputType'               => 'checkbox',
+    'eval'                    => ['tl_class' => 'w50'],
+    'sql'                     => "TINYINT(1) NULL default '0'",
+];
+
 $GLOBALS['TL_DCA']['tl_module']['fields']['element_type'] = [
     'exclude' => false,
     'inputType' => 'select',
@@ -82,39 +89,41 @@ $GLOBALS['TL_DCA']['tl_module']['fields']['element_label_type'] = [
 ];
 
 $GLOBALS['TL_DCA']['tl_module']['palettes']['language_switcher_module'] =
-    '{title_legend},name, type, deepl_key, original_language,  in_url, languages; {look_legend}, element_type, show_modal, element_label_type; {usage_legend},usage_info';
+    '{title_legend},name, type, deepl_key, original_language, in_url, agent_redirect,languages; {look_legend}, element_type, show_modal, element_label_type; {usage_legend},usage_info';
 
 class translation_module
 {
     public function writeConfig($dc)
     {
-        $fields = ["deepl_key", "deepl_pro_plan", "original_language", "languages", "in_url", "element_type", "show_modal", "element_label_type"];
         $configObj = new Config();
         $configPath = $configObj->getConfigPath();
+        $fields = $configObj->getFields();
         $existingConfig = file_exists($configPath) ? @include($configPath) : [];
         $db = \Contao\Database::getInstance();
 
         $config = [];
         foreach ($fields as $field) {
-            if (isset($dc->activeRecord->{$field})) {
-                if ($field == 'deepl_key') {
-                    if (empty($dc->activeRecord->{$field}) && $existingConfig[$field]) {
-                        $config[$field] = $existingConfig[$field] ?? '';
-                        $db->query("UPDATE tl_module SET " . $field . "='' WHERE id=" . $dc->activeRecord->id);
-                    } else if (empty($dc->activeRecord->{$field}) && !$existingConfig[$field]) {
-                        $config[$field] = '';
-                        $db->query("UPDATE tl_module SET " . $field . "='' WHERE id=" . $dc->activeRecord->id);
-                    } else {
-                        $config[$field] = $dc->activeRecord->{$field};
-                        $db->query("UPDATE tl_module SET " . $field . "='' WHERE id=" . $dc->activeRecord->id);
-                    }
-                    continue;
-                }
+            $config[$field] = '';
 
-                $config[$field] = is_numeric($dc->activeRecord->{$field}) ? (bool) $dc->activeRecord->{$field} : $dc->activeRecord->{$field};
-            } else {
-                $config[$field] = '';
+            if (!isset($dc->activeRecord->{$field})) {
+                continue;
             }
+
+            if ($field == 'deepl_key') {
+                if (empty($dc->activeRecord->{$field}) && $existingConfig[$field]) {
+                    $config[$field] = $existingConfig[$field] ?? '';
+                    $db->query("UPDATE tl_module SET " . $field . "='' WHERE id=" . $dc->activeRecord->id);
+                } else if (empty($dc->activeRecord->{$field}) && !$existingConfig[$field]) {
+                    $config[$field] = '';
+                    $db->query("UPDATE tl_module SET " . $field . "='' WHERE id=" . $dc->activeRecord->id);
+                } else {
+                    $config[$field] = $dc->activeRecord->{$field};
+                    $db->query("UPDATE tl_module SET " . $field . "='' WHERE id=" . $dc->activeRecord->id);
+                }
+                continue;
+            }
+
+            $config[$field] = is_numeric($dc->activeRecord->{$field}) ? (bool) $dc->activeRecord->{$field} : $dc->activeRecord->{$field};
         }
 
 

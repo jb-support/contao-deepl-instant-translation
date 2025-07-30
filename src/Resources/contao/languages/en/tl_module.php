@@ -20,6 +20,7 @@ $GLOBALS['TL_LANG']['tl_module']['usage_info']['plan'] = 'Current Plan: %s';
 $GLOBALS['TL_LANG']['tl_module']['element_label_type'] = ['Label Type', 'Choose the type of label to display (Short: EN, DE or Long: English, Deutsch)'];
 $GLOBALS['TL_LANG']['tl_module']['element_label_type']['short'] = 'Short Label';
 $GLOBALS['TL_LANG']['tl_module']['element_label_type']['long'] = 'Long Label';
+$GLOBALS['TL_LANG']['tl_module']['agent_redirect'] = ['Agent-Language Redirect', 'Redirect based on the Agent-Language (Browser language) on first visit.'];
 
 $GLOBALS['TL_LANG']['lang']['ar'] = 'Arabic';
 $GLOBALS['TL_LANG']['lang']['bg'] = 'Bulgarian';

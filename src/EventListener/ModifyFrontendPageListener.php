@@ -29,7 +29,7 @@ class ModifyFrontendPageListener
             $request = System::getContainer()->get('request_stack')->getCurrentRequest();
             $domain = $request->getSchemeAndHttpHost();
             $pathInfo = $request->getPathInfo();
-            $lang = $request->attributes->get('language_prefix') ?? $originalLanguage;
+            $lang = $request->attributes->get('lang_code') ?? $originalLanguage;
 
             if ($showInUrl) {
                 $buffer = $this->addLanghref($domain, $pathInfo, $enabledLanguages, $buffer);

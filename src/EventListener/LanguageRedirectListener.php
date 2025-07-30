@@ -30,7 +30,8 @@ class LanguageRedirectListener
         }
 
         $agentLanguage = null;
-        if (!isset($_COOKIE['language_prefix'])) {
+
+        if (!isset($_COOKIE['lang_code']) && $this->config->getRedirectAgent()) {
             $acceptLang = $request->headers->get('Accept-Language');
             if ($acceptLang) {
                 $primary = strtolower(substr(trim(explode(';', explode(',', $acceptLang)[0])[0]), 0, 2));
@@ -49,18 +50,18 @@ class LanguageRedirectListener
         $enabledLanguages = $this->config->getEnabledLanguages();
         $showInUrl = $this->config->getShowInUrl();
 
-        $langNew = $request->request->get('lang');
+        $langNew = $agentLanguage ?: $request->request->get('lang');
         $langInUrl = explode('/', $pathInfo)[1];
         $langInUrl = preg_match('/^[a-z]{2}$/', $langInUrl) ? $langInUrl : '';
 
 
         if (!$showInUrl) {
             if ($langNew) {
-                setcookie('language_prefix', $langNew, time() + 3600 * 24 * 30, '/');
-                $request->attributes->set('language_prefix', $langNew);
+                setcookie('lang_code', $langNew, time() + 3600 * 24 * 30, '/');
+                $request->attributes->set('lang_code', $langNew);
             } else {
-                $lang = $_COOKIE['language_prefix'] ?? $originalLang;
-                $request->attributes->set('language_prefix', $lang);
+                $lang = $_COOKIE['lang_code'] ?? $originalLang;
+                $request->attributes->set('lang_code', $lang);
             }
             return;
         }
@@ -82,7 +83,7 @@ class LanguageRedirectListener
         }
 
         if ($lang == $originalLang && !empty($langInUrl)) {
-            $request->attributes->set('language_prefix', $lang);
+            $request->attributes->set('lang_code', $lang);
             if ($langInUrl !== $lang) {
                 $newPath = preg_replace('#^/' . preg_quote($langInUrl, '#') . '(/|$)#', '/' . $lang . '$1', $pathInfo, 1);
             } else if ($langInUrl == $originalLang) {
@@ -91,13 +92,13 @@ class LanguageRedirectListener
                     $newPath = '/';
                 }
             }
-            setcookie('language_prefix', $lang, time() + 3600 * 24 * 30, '/');
+            setcookie('lang_code', $lang, time() + 3600 * 24 * 30, '/');
             $response = new RedirectResponse($newPath);
             $event->setResponse($response);
             return;
         } else if ($lang == $originalLang && empty($langInUrl)) {
-            $request->attributes->set('language_prefix', $lang);
-            setcookie('language_prefix', $lang, time() + 3600 * 24 * 30, '/');
+            $request->attributes->set('lang_code', $lang);
+            setcookie('lang_code', $lang, time() + 3600 * 24 * 30, '/');
             return;
         }
 
@@ -131,11 +132,11 @@ class LanguageRedirectListener
                 $response = new RedirectResponse($newUrl);
                 $event->setResponse($response);
 
-                setcookie('language_prefix', $lang, time() + 3600 * 24 * 30, '/');
+                setcookie('lang_code', $lang, time() + 3600 * 24 * 30, '/');
                 return;
             }
 
-            $request->attributes->set('language_prefix', $lang);
+            $request->attributes->set('lang_code', $lang);
 
             $reflection = new \ReflectionObject($request);
             if ($reflection->hasProperty('pathInfo')) {
@@ -144,7 +145,7 @@ class LanguageRedirectListener
                 $property->setValue($request, $newReqPath);
             }
 
-            setcookie('language_prefix', $lang, time() + 3600 * 24 * 30, '/');
+            setcookie('lang_code', $lang, time() + 3600 * 24 * 30, '/');
             return;
         }
     }

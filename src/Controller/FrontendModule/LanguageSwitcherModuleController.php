@@ -37,7 +37,7 @@ class LanguageSwitcherModuleController extends AbstractFrontendModuleController
 
         $agentLanguage = $this->getAgentLanguage($model);
 
-        $language = $request->attributes->get('language_prefix', $agentLanguage);
+        $language = $request->attributes->get('lang_code', $agentLanguage);
 
         if (!in_array($language, array_keys($languagesArr))) {
             return $this->redirect('/' . $model->original_language . '/' . ltrim($request->getRequestUri(), '/'));

@@ -13,6 +13,8 @@ $GLOBALS['TL_LANG']['tl_module']['in_url'] = ['In URL', 'Füge die Sprache in di
 $GLOBALS['TL_LANG']['tl_module']['element_label_type'] = ['Labeltyp', 'Wählen Sie den Typ des Labels, das angezeigt werden soll. (Kurz: EN, DE oder Lang: English, Deutsch)'];
 $GLOBALS['TL_LANG']['tl_module']['element_label_type']['short'] = 'Kurzes Label';
 $GLOBALS['TL_LANG']['tl_module']['element_label_type']['long'] = 'Langes Label';
+$GLOBALS['TL_LANG']['tl_module']['agent_redirect'] = ['Agent-Language Weiterleitung', 'Leite beim Erstbesuch anhand der Agent-Language (Browser language) weiter.'];
+
 
 $GLOBALS['TL_LANG']['tl_module']['usage_info']['label'] = 'DeepL-API-Nutzungsinformationen';
 $GLOBALS['TL_LANG']['tl_module']['usage_info']['no_key'] = 'Kein DeepL API Schlüssel angegeben.';
