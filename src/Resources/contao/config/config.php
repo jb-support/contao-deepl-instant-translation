@@ -8,7 +8,7 @@ $GLOBALS['FMD']['jb_translation']['language_switcher'] = LanguageSwitcherModuleC
 
 $GLOBALS['TL_MODELS']['tl_jb_translation'] = TranslationModel::class;
 
-if (TL_MODE === 'BE') {
+if (defined('TL_MODE') && TL_MODE === 'BE') {
     $GLOBALS['TL_CSS'][] = 'bundles/jbsupportcontaodeeplinstanttranslation/css/backend.css|static';
 }
 
