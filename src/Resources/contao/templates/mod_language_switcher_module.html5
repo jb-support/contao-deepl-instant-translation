@@ -1,5 +1,5 @@
 <form method="POST" action="" class="translation-language-switcher">
-    <input type="hidden" name="REQUEST_TOKEN" value="<?= REQUEST_TOKEN ?>">
+    <input type="hidden" name="REQUEST_TOKEN" value="<?= $this->requestToken ?>">
     <?php
         switch($this->elementType):
             case 'select':

@@ -2,12 +2,13 @@
 
 namespace JBSupport\ContaoDeeplInstantTranslationBundle\Controller\FrontendModule;
 
-use Contao\CoreBundle\Controller\FrontendModule\AbstractFrontendModuleController;
-use Contao\CoreBundle\ServiceAnnotation\FrontendModule;
-use Contao\ModuleModel;
+use Contao\System;
 use Contao\Template;
+use Contao\ModuleModel;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Contao\CoreBundle\ServiceAnnotation\FrontendModule;
+use Contao\CoreBundle\Controller\FrontendModule\AbstractFrontendModuleController;
 use JBSupport\ContaoDeeplInstantTranslationBundle\Settings;
 
 /**
@@ -47,6 +48,7 @@ class LanguageSwitcherModuleController extends AbstractFrontendModuleController
         $template->lang = $language;
         $template->showModal = $model->show_modal ? true : false;
         $template->elementType = $model->element_type;
+        $template->requestToken = System::getContainer()->get('contao.csrf.token_manager')->getDefaultTokenValue();
         $template->translatingStrings = json_encode($translationInProgressStrings);
 
         return $template->getResponse();
