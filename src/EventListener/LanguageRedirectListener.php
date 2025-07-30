@@ -29,7 +29,19 @@ class LanguageRedirectListener
             return;
         }
 
-        if(empty($this->config)) {
+        $agentLanguage = null;
+        if (!isset($_COOKIE['language_prefix'])) {
+            $acceptLang = $request->headers->get('Accept-Language');
+            if ($acceptLang) {
+                $primary = strtolower(substr(trim(explode(';', explode(',', $acceptLang)[0])[0]), 0, 2));
+                if (in_array($primary, $this->config->getEnabledLanguages())) {
+                    $agentLanguage = $primary;
+                    setcookie('agent_language', $agentLanguage, time() + 3600 * 24 * 30, '/');
+                }
+            }
+        }
+
+        if (empty($this->config)) {
             return;
         }
 
@@ -53,7 +65,7 @@ class LanguageRedirectListener
             return;
         }
 
-        $lang = $originalLang;
+        $lang = $agentLanguage ?: $originalLang;
         $strip = false;
 
         if ($langNew && preg_match('/^[a-z]{2}$/', $langNew)) {
@@ -79,12 +91,13 @@ class LanguageRedirectListener
                     $newPath = '/';
                 }
             }
-
+            setcookie('language_prefix', $lang, time() + 3600 * 24 * 30, '/');
             $response = new RedirectResponse($newPath);
             $event->setResponse($response);
             return;
         } else if ($lang == $originalLang && empty($langInUrl)) {
             $request->attributes->set('language_prefix', $lang);
+            setcookie('language_prefix', $lang, time() + 3600 * 24 * 30, '/');
             return;
         }
 
@@ -117,6 +130,8 @@ class LanguageRedirectListener
 
                 $response = new RedirectResponse($newUrl);
                 $event->setResponse($response);
+
+                setcookie('language_prefix', $lang, time() + 3600 * 24 * 30, '/');
                 return;
             }
 
@@ -129,6 +144,7 @@ class LanguageRedirectListener
                 $property->setValue($request, $newReqPath);
             }
 
+            setcookie('language_prefix', $lang, time() + 3600 * 24 * 30, '/');
             return;
         }
     }
