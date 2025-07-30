@@ -55,13 +55,17 @@ class ModifyFrontendPageListener
                     foreach ($linkNodes as $linkNode) {
                         $href = $linkNode->getAttribute('href');
                         if ($href) {
-                            if (!str_contains($href, 'http') && !str_contains($href, 'mailto:') && !str_contains($href, 'tel:') && !str_contains($href, 'javascript:')) {
-                                $href = str_replace($lang . '/', '', $href);
-                                $href = $lang . '/' . $href;
-                            } else if ($href == Environment::get('base')) {
+                            if (str_contains($href, 'http') || str_contains($href, 'mailto:') || str_contains($href, 'tel:') || str_contains($href, 'javascript:')) {
+                                continue;
+                            }
+
+                            if ($href == Environment::get('base')) {
                                 $href = Environment::get('base') . $lang . '/';
                             } else if (str_starts_with($href, Environment::get('base'))) {
                                 $href = str_replace(Environment::get('base'), Environment::get('base') . $lang . '/', $href);
+                            } else {
+                                $href = str_replace($lang . '/', '', $href);
+                                $href = $lang . '/' . $href;
                             }
                             $hrefs[] = $href;
                         }
