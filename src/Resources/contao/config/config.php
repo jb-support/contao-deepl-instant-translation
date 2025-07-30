@@ -1,6 +1,8 @@
 <?php
 
+use Contao\System;
 use Contao\ArrayUtil;
+use Symfony\Component\HttpFoundation\Request;
 use JBSupport\ContaoDeeplInstantTranslationBundle\Model\TranslationModel;
 use JBSupport\ContaoDeeplInstantTranslationBundle\Controller\FrontendModule\LanguageSwitcherModuleController;
 
@@ -8,7 +10,9 @@ $GLOBALS['FMD']['jb_translation']['language_switcher'] = LanguageSwitcherModuleC
 
 $GLOBALS['TL_MODELS']['tl_jb_translation'] = TranslationModel::class;
 
-if (defined('TL_MODE') && TL_MODE === 'BE') {
+if (System::getContainer()->get('contao.routing.scope_matcher')
+    ->isBackendRequest(System::getContainer()->get('request_stack')->getCurrentRequest() ?? Request::create(''))
+) {
     $GLOBALS['TL_CSS'][] = 'bundles/jbsupportcontaodeeplinstanttranslation/css/backend.css|static';
 }
 
