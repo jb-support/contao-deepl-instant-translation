@@ -111,7 +111,7 @@ $GLOBALS['TL_DCA']['tl_jb_translation'] = array(
 		'translated_string' => array(
 			'search' 				  => true,
 			'inputType'               => 'textarea',
-			'eval' 				      => array('mandatory' => true, 'decodeEntities' => false, 'allowHtml' => true, 'tl_class' => 'clr'),
+			'eval' 				      => array('decodeEntities' => false, 'allowHtml' => true, 'tl_class' => 'clr'),
 			'sql'                     => "text NULL default NULL"
 		)
 	)
@@ -182,7 +182,7 @@ class tl_jb_translation extends Backend
 
 	public function deeplIcon($row, $href, $label, $title, $icon, $dc)
 	{
-		$length = strlen($row['original_string']);
+		$length = strlen(strip_tags($row['original_string']));
 		$lengthString = sprintf(
 			$GLOBALS['TL_LANG']['tl_jb_translation']['usage_alert'],
 			$length
