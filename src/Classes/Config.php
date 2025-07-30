@@ -10,7 +10,7 @@ class Config
 
     public function __construct()
     {
-        $this->configPath = __DIR__ . "/../Resources/config/config.php";
+        $this->configPath = dirname(__DIR__, 5) . '/system/config/translation_config.php';
 
         if (file_exists($this->configPath)) {
             $this->config = @include($this->configPath);
