@@ -55,7 +55,7 @@ class ModifyFrontendPageListener
                     foreach ($linkNodes as $linkNode) {
                         $href = $linkNode->getAttribute('href');
                         if ($href) {
-                            if (str_contains($href, 'http') || str_contains($href, 'mailto:') || str_contains($href, 'tel:') || str_contains($href, 'javascript:')) {
+                            if (str_contains($href, 'http') || str_contains($href, 'mailto:') || str_contains($href, 'tel:') || str_contains($href, 'javascript:') || str_contains($href, '/api/')) {
                                 continue;
                             }
 
