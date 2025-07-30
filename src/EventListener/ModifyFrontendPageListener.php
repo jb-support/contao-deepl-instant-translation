@@ -55,7 +55,7 @@ class ModifyFrontendPageListener
                     foreach ($linkNodes as $linkNode) {
                         $href = $linkNode->getAttribute('href');
                         if ($href) {
-                            if (!str_contains($href, 'http')) {
+                            if (!str_contains($href, 'http') && !str_contains($href, 'mailto:') && !str_contains($href, 'tel:') && !str_contains($href, 'javascript:')) {
                                 $href = str_replace($lang . '/', '', $href);
                                 $href = $lang . '/' . $href;
                             } else if ($href == Environment::get('base')) {
