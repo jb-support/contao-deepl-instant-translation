@@ -70,6 +70,12 @@ class Settings
 		'uk' => 'Переклад на %s',
 	];
 
+	private static $defaultVariants = [
+		"en" => "EN-US",
+		"pt" => "PT-PT",
+		"zh" => "ZH-HANT",
+	];
+
 	public static function getLanguages()
 	{
 		return self::$languages;
@@ -107,5 +113,10 @@ class Settings
 			'short' => $GLOBALS['TL_LANG']['tl_module']['element_label_type']['short'],
 			'long' => $GLOBALS['TL_LANG']['tl_module']['element_label_type']['long']
 		];
+	}
+
+	public static function getVariant($lang)
+	{
+		return self::$defaultVariants[$lang] ?? $lang;
 	}
 }

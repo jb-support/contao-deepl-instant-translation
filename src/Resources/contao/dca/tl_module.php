@@ -89,7 +89,7 @@ $GLOBALS['TL_DCA']['tl_module']['fields']['element_label_type'] = [
 ];
 
 $GLOBALS['TL_DCA']['tl_module']['palettes']['language_switcher_module'] =
-    '{title_legend},name, type, deepl_key, original_language, in_url, agent_redirect,languages; {look_legend}, element_type, show_modal, element_label_type; {usage_legend},usage_info';
+    '{title_legend},name, type, deepl_key, in_url, agent_redirect; {languages_legend}, original_language, languages; {look_legend}, element_type, show_modal, element_label_type; {usage_legend},usage_info';
 
 class translation_module
 {

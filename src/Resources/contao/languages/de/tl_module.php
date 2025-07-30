@@ -4,6 +4,7 @@ $GLOBALS['TL_LANG']['FMD']['language_switcher_module'] = ['Übersetzungs-Sprachw
 $GLOBALS['TL_LANG']['tl_module']['original_language'] = ['Originalsprache', 'Originalsprache der Seite, z.B.: Englisch (en)'];
 $GLOBALS['TL_LANG']['tl_module']['look_legend'] = 'Aussehen';
 $GLOBALS['TL_LANG']['tl_module']['usage_legend'] = 'Nutzungsinformationen';
+$GLOBALS['TL_LANG']['tl_module']['languages_legend'] = 'Sprachen';
 
 $GLOBALS['TL_LANG']['tl_module']['deepl_key'] = ['DeepL API Schlüssel', 'z.B.: 6413******3:fx'];
 $GLOBALS['TL_LANG']['tl_module']['languages'] = ['Aktivierte Sprachen', 'Sprachen, die im Switcher angezeigt werden sollen.'];

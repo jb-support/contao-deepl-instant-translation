@@ -3,6 +3,7 @@
 namespace JBSupport\ContaoDeeplInstantTranslationBundle\Controller;
 
 use Contao\CoreBundle\Controller\AbstractController;
+use JBSupport\ContaoDeeplInstantTranslationBundle\Settings;
 use JBSupport\ContaoDeeplInstantTranslationBundle\Classes\Config;
 use JBSupport\ContaoDeeplInstantTranslationBundle\Model\TranslationModel;
 
@@ -76,7 +77,7 @@ class TranslationController extends AbstractController
         ]);
         curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode([
             "text" => [$text],
-            "target_lang" => $targetLang,
+            "target_lang" => Settings::getVariant($targetLang),
             "source_lang" => $sourceLang,
             'tag_handling' => 'html'
         ]));
