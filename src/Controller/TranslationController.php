@@ -14,16 +14,9 @@ class TranslationController extends AbstractController
         $text = preg_replace('/(?<= )\s+|\s+(?= )/', '', $text); // Remove extra spaces except one on each side if present
         $hash = md5($text);
 
-        // Check for translation based on page_id, hash, and language
-        $translation = TranslationModel::findOneBy(['pid = ? AND hash = ? AND language = ?'], [$page_id, $hash, $lang]);
+        $translation = self::fetchTranslationFromDB($hash, $lang);
         if ($translation) {
-            return html_entity_decode($translation->translated_string);
-        }
-
-        // Check for translation based on hash and language
-        $translation = TranslationModel::findOneBy(['hash = ? AND language = ?'], [$hash, $lang]);
-        if ($translation) {
-            return html_entity_decode($translation->translated_string);
+            return $translation;
         }
 
         $translatedText = self::fetchDeepLTranslation($text, $lang);
@@ -54,7 +47,17 @@ class TranslationController extends AbstractController
         return $translatedText;
     }
 
-    public static function fetchDeepLTranslation(string $text, string $targetLang): string
+    public static function fetchTranslationFromDB($hash, $lang): ?string
+    {
+        $translation = TranslationModel::findOneBy(['hash = ? AND language = ?'], [$hash, $lang]);
+        if ($translation) {
+            return html_entity_decode($translation->translated_string);
+        }
+
+        return null;
+    }
+
+    public static function fetchDeepLTranslation(string | array $text, string $targetLang): string | array
     {
         $config = new Config();
 
@@ -62,6 +65,7 @@ class TranslationController extends AbstractController
         $sourceLang = $config->getOriginalLanguage();
         $url = $config->getApiUrl();
         $formality = $config->getFormality();
+        $glossaryId = $config->getGlossaryId();
 
         if (empty($deeplKey)) {
             return $text;
@@ -76,23 +80,32 @@ class TranslationController extends AbstractController
             "Content-Type: application/json",
             "Authorization: DeepL-Auth-Key " . $deeplKey
         ]);
-        curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode([
-            "text" => [$text],
-            "target_lang" => Settings::getVariant($targetLang),
-            "source_lang" => $sourceLang,
+
+        $body = [
+            'text' => is_array($text) ? $text : [$text],
+            'target_lang' => Settings::getVariant($targetLang),
+            'source_lang' => $sourceLang,
             'formality' => $formality,
-            'tag_handling' => 'html'
-        ]));
+            'tag_handling' => 'html',
+        ];
+
+        if ($glossaryId) {
+            $body['glossary_id'] = $glossaryId;
+        }
+
+        curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($body));
 
         $result = curl_exec($ch);
         curl_close($ch);
 
         $response = json_decode($result, true);
 
-        if (isset($response['translations'][0]['text'])) {
+        if (!is_array($text) && isset($response['translations'][0]['text'])) {
             $translatedText = $response['translations'][0]['text'];
+        } else if (is_array($text) && isset($response['translations'])) {
+            $translatedText = $response['translations'];
         } else {
-            $translatedText = $text;
+            $translatedText = is_array($text) ? $text : [$text];
         }
 
         return $translatedText;

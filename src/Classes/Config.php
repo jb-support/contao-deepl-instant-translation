@@ -13,7 +13,8 @@ class Config
         'agent_redirect',
         'element_type',
         'element_label_type',
-        'formality'
+        'formality',
+        'glossary_id',
     ];
 
     private array $config;
@@ -96,5 +97,10 @@ class Config
     public function getFormality(): string
     {
         return $this->config['formality'] ?? 'default';
+    }
+
+    public function getGlossaryId(): ?string
+    {
+        return empty($this->config['glossary_id']) ? null : $this->config['glossary_id'];
     }
 }

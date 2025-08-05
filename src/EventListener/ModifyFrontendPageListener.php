@@ -51,24 +51,29 @@ class ModifyFrontendPageListener
                 $hrefs = [];
 
                 $addToUrl = $showInUrl && $lang !== $originalLanguage;
-                if ($addToUrl) {
-                    foreach ($linkNodes as $linkNode) {
-                        $href = $linkNode->getAttribute('href');
-                        if ($href) {
-                            if (str_contains($href, 'http') || str_contains($href, 'mailto:') || str_contains($href, 'tel:') || str_contains($href, 'javascript:') || str_contains($href, '/api/')) {
-                                continue;
-                            }
+                foreach ($linkNodes as $linkNode) {
+                    $href = $linkNode->getAttribute('href');
+                    $title = $linkNode->getAttribute('title');
 
-                            if ($href == Environment::get('base')) {
-                                $href = Environment::get('base') . $lang . '/';
-                            } else if (str_starts_with($href, Environment::get('base'))) {
-                                $href = str_replace(Environment::get('base'), Environment::get('base') . $lang . '/', $href);
-                            } else {
-                                $href = str_replace($lang . '/', '', $href);
-                                $href = $lang . '/' . $href;
-                            }
-                            $hrefs[] = $href;
+                    if ($title) {
+                        $translatedTitle = TranslationController::translateText($title, $lang, $page_id);
+                        $linkNode->setAttribute('title', $translatedTitle);
+                    }
+
+                    if ($href && $addToUrl) {
+                        if (str_contains($href, 'http') || str_contains($href, 'mailto:') || str_contains($href, 'tel:') || str_contains($href, 'javascript:') || str_contains($href, '/api/')) {
+                            continue;
                         }
+
+                        if ($href == Environment::get('base')) {
+                            $href = Environment::get('base') . $lang . '/';
+                        } else if (str_starts_with($href, Environment::get('base'))) {
+                            $href = str_replace(Environment::get('base'), Environment::get('base') . $lang . '/', $href);
+                        } else {
+                            $href = str_replace($lang . '/', '', $href);
+                            $href = $lang . '/' . $href;
+                        }
+                        $hrefs[] = $href;
                     }
                 }
 
@@ -106,16 +111,17 @@ class ModifyFrontendPageListener
 
                     if ($node->parentNode->nodeName !== 'script' && $node->parentNode->nodeName !== 'style') {
 
+                        $nodeValue = $node->nodeValue;
                         if ($node->parentNode->nodeName === 'span' || $node->parentNode->nodeName === 'strong') {
                             $nodeValue = '#markup#' . $nodeValue . '#markup#';
                         }
 
-                        if (preg_match('/[A-Za-z]/', $node->nodeValue)) {
+                        if (preg_match('/[A-Za-z]/', $nodeValue)) {
                             $numbers = [];
                             $nodeValue = preg_replace_callback('/\d+/', function ($matches) use (&$numbers) {
                                 $numbers[] = $matches[0];
                                 return '###';
-                            }, $node->nodeValue);
+                            }, $nodeValue);
 
                             $emails = [];
                             $nodeValue = preg_replace_callback('/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/', function ($matches) use (&$emails) {

@@ -3,6 +3,9 @@
 use JBSupport\ContaoDeeplInstantTranslationBundle\Classes\Config;
 use JBSupport\ContaoDeeplInstantTranslationBundle\Settings;
 
+$GLOBALS['TL_DCA']['tl_module']['config']['onsubmit_callback'][] = array('translation_module', 'writeConfig');
+
+
 $GLOBALS['TL_DCA']['tl_module']['fields']['deepl_key'] = [
     'exclude'                 => true,
     'inputType'               => 'text',
@@ -10,7 +13,6 @@ $GLOBALS['TL_DCA']['tl_module']['fields']['deepl_key'] = [
     'sql'                     => "varchar(255) NOT NULL default ''",
 ];
 
-$GLOBALS['TL_DCA']['tl_module']['config']['onsubmit_callback'][] = array('translation_module', 'writeConfig');
 
 $GLOBALS['TL_DCA']['tl_module']['fields']['original_language'] = [
     'exclude'                 => true,
@@ -36,10 +38,10 @@ $GLOBALS['TL_DCA']['tl_module']['fields']['show_modal'] = [
 ];
 
 $GLOBALS['TL_DCA']['tl_module']['fields']['usage_info'] = [
-    'exclude' => false,
-    'inputType' => 'custom',
-    'eval' => ['tl_class' => 'clr', 'doNotSaveEmpty' => true],
-    'input_field_callback' => ['translation_module', 'getUsageInfo'],
+    'exclude'                 => false,
+    'inputType'               => 'custom',
+    'eval'                    => ['tl_class' => 'clr', 'doNotSaveEmpty' => true],
+    'input_field_callback'    => ['translation_module', 'getUsageInfo'],
 ];
 
 $GLOBALS['TL_DCA']['tl_module']['fields']['in_url'] = [
@@ -57,14 +59,11 @@ $GLOBALS['TL_DCA']['tl_module']['fields']['agent_redirect'] = [
 ];
 
 $GLOBALS['TL_DCA']['tl_module']['fields']['element_type'] = [
-    'exclude' => false,
-    'inputType' => 'select',
-    'options' => ['select' => 'Select', 'radio' => 'Radio', 'buttons' => 'Buttons'],
-    'eval' => [
-        'tl_class' => 'w50',
-        'chosen' => true,
-    ],
-    'sql' => "varchar(10) NOT NULL default 'select'",
+    'exclude'                 => false,
+    'inputType'               => 'select',
+    'options'                 => ['select' => 'Select', 'radio' => 'Radio', 'buttons' => 'Buttons'],
+    'eval'                    => ['tl_class' => 'w50', 'chosen' => true],
+    'sql'                     => "varchar(10) NOT NULL default 'select'",
 ];
 
 $GLOBALS['TL_DCA']['tl_module']['fields']['deepl_pro_plan'] = [
@@ -75,30 +74,34 @@ $GLOBALS['TL_DCA']['tl_module']['fields']['deepl_pro_plan'] = [
 ];
 
 $GLOBALS['TL_DCA']['tl_module']['fields']['element_label_type'] = [
-    'exclude' => true,
-    'inputType' => 'radio',
-    'options' => [
-        'short' => 'Short',
-        'long' => 'Long'
-    ],
-    'options_callback' => [Settings::class, 'getElementLabelTypes'],
-    'eval' => [
-        'tl_class' => 'w50',
-    ],
-    'sql' => "varchar(10) NOT NULL default 'long'",
+    'exclude'                 => true,
+    'inputType'               => 'radio',
+    'options'                 => ['short' => 'Short', 'long' => 'Long'],
+    'options_callback'        => [Settings::class, 'getElementLabelTypes'],
+    'eval'                    => ['tl_class' => 'w50'],
+    'sql'                     => "varchar(10) NOT NULL default 'long'",
+];
+
+$GLOBALS['TL_DCA']['tl_module']['fields']['glossary_id'] = [
+    'exclude'                 => false,
+    'inputType'               => 'select',
+    'options'                 => [],
+    'options_callback'        => ['translation_module', 'getGlossaries'],
+    'eval'                    => ['tl_class' => 'w50', 'chosen' => true, 'includeBlankOption' => true],
+    'sql'                     => "varchar(36) NOT NULL default ''",
 ];
 
 $GLOBALS['TL_DCA']['tl_module']['fields']['formality'] = [
-    'exclude' => false,
-    'inputType' => 'radio',
-    'options' => ['prefer_more' => 'More formal', 'default' => 'Default', 'prefer_less' => 'Less formal'],
-    'options_callback' => [Settings::class, 'getFormalityTypes'],
-    'eval' => ['tl_class' => 'w50'],
-    'sql' => "varchar(12) NOT NULL default 'default'",
+    'exclude'                 => false,
+    'inputType'               => 'radio',
+    'options'                 => ['prefer_more' => 'More formal', 'default' => 'Default', 'prefer_less' => 'Less formal'],
+    'options_callback'        => [Settings::class, 'getFormalityTypes'],
+    'eval'                    => ['tl_class' => 'w50'],
+    'sql'                     => "varchar(12) NOT NULL default 'default'",
 ];
 
 $GLOBALS['TL_DCA']['tl_module']['palettes']['language_switcher_module'] =
-    '{title_legend},name, type, deepl_key, in_url, agent_redirect; {languages_legend}, languages, original_language, formality; {look_legend}, element_type, show_modal, element_label_type; {usage_legend},usage_info';
+    '{title_legend},name, type, deepl_key, in_url, agent_redirect; {languages_legend}, languages, original_language, glossary_id, formality; {look_legend}, element_type, show_modal, element_label_type; {usage_legend},usage_info';
 
 class translation_module
 {
@@ -114,10 +117,6 @@ class translation_module
         foreach ($fields as $field) {
             $config[$field] = '';
 
-            if (!isset($dc->activeRecord->{$field})) {
-                continue;
-            }
-
             if ($field == 'deepl_key') {
                 if (empty($dc->activeRecord->{$field}) && $existingConfig[$field]) {
                     $config[$field] = $existingConfig[$field] ?? '';
@@ -132,15 +131,32 @@ class translation_module
                 continue;
             }
 
-            $config[$field] = is_numeric($dc->activeRecord->{$field}) ? (bool) $dc->activeRecord->{$field} : $dc->activeRecord->{$field};
+            $config[$field] = $this->handleConfigValue($dc->activeRecord->{$field});
         }
 
 
-        $content = "<?php\nreturn " . var_export($config, true) . ";";
+        $content = "<?php\n"
+            . "/*THIS FILE HAS BEEN AUTO GENERATED BY THE CONTAO DEEPL INSTANT TRANSLATIONS EXTENSION*/\n"
+            . "return "  . var_export($config, true) . ";";
 
         file_put_contents($configPath, $content);
 
         return '';
+    }
+
+    private function handleConfigValue($value)
+    {
+        if (is_array($value)) {
+            return serialize($value);
+        } else if (is_numeric($value)) {
+            return $value != 0 ? true : false;
+        } else if (is_null($value)) {
+            return false;
+        } else if (empty($value)) {
+            return false;
+        }
+
+        return $value;
     }
 
     public function getUsageInfo($dc)
@@ -232,5 +248,49 @@ class translation_module
         curl_close($ch);
 
         return $response ?? "Error fetching usage info. Please check your API key.";
+    }
+
+    public function getGlossaries()
+    {
+        $glossaries = $this->fetchGlossaries();
+
+        $glossaries = array_reduce($glossaries, function ($carry, $item) {
+            $carry[$item['glossary_id']] = $item['name'];
+            return $carry;
+        }, []);
+
+        return $glossaries;
+    }
+
+    private function fetchGlossaries()
+    {
+        $config = new Config();
+        $deepl_key = $config->getDeeplKey();
+
+        if (empty($deepl_key)) {
+            return [];
+        }
+
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, "https://api.deepl.com/v3/glossaries");
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, [
+            "Content-Type: application/json",
+            "Authorization: DeepL-Auth-Key " . $deepl_key
+        ]);
+
+        $result = curl_exec($ch);
+        $http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+
+        // If forbidden, try the free endpoint
+        if ($http_code == 403) {
+            curl_setopt($ch, CURLOPT_URL, "https://api-free.deepl.com/v3/glossaries");
+            $result = curl_exec($ch);
+        }
+
+        $response = json_decode($result, true);
+        curl_close($ch);
+
+        return $response['glossaries'] ?? [];
     }
 }

@@ -20,6 +20,8 @@ $GLOBALS['TL_LANG']['tl_module']['formality']['prefer_more'] = 'Formeller';
 $GLOBALS['TL_LANG']['tl_module']['formality']['prefer_less'] = 'Weniger formell';
 $GLOBALS['TL_LANG']['tl_module']['formality']['default'] = 'Standard';
 
+$GLOBALS['TL_LANG']['tl_module']['glossary_id'] = ['Glossar', 'Glossare müssen bei DeepL erstmal erstellt werden.'];
+
 $GLOBALS['TL_LANG']['tl_module']['usage_info']['label'] = 'DeepL-API-Nutzungsinformationen';
 $GLOBALS['TL_LANG']['tl_module']['usage_info']['no_key'] = 'Kein DeepL API Schlüssel angegeben.';
 $GLOBALS['TL_LANG']['tl_module']['usage_info']['characters'] = 'Zeichen: %s / %s';
