@@ -68,10 +68,9 @@ class ModifyFrontendPageListener
                         if ($href == Environment::get('base')) {
                             $href = Environment::get('base') . $lang . '/';
                         } else if (str_starts_with($href, Environment::get('base'))) {
-                            $href = str_replace(Environment::get('base'), Environment::get('base') . $lang . '/', $href);
+                            $href = str_replace(Environment::get('base'), Environment::get('base') . $lang . '/', ltrim($href, "/"));
                         } else {
-                            $href = str_replace($lang . '/', '', $href);
-                            $href = $lang . '/' . $href;
+                            $href = $lang . '/' . ltrim($href, "/");
                         }
                         $hrefs[] = $href;
                     }
