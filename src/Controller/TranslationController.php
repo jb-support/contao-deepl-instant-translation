@@ -14,7 +14,7 @@ class TranslationController extends AbstractController
         $text = preg_replace('/(?<= )\s+|\s+(?= )/', '', $text); // Remove extra spaces except one on each side if present
         $hash = md5($text);
 
-        $translation = self::fetchTranslationFromDB($hash, $lang);
+        $translation = self::fetchTranslationFromDB($page_id, $hash, $lang);
         if ($translation) {
             return $translation;
         }
@@ -47,8 +47,14 @@ class TranslationController extends AbstractController
         return $translatedText;
     }
 
-    public static function fetchTranslationFromDB($hash, $lang): ?string
+    public static function fetchTranslationFromDB($page_id, $hash, $lang): ?string
     {
+        $translation = TranslationModel::findOneBy(['pid = ? AND hash = ? AND language = ?'], [$page_id, $hash, $lang]);
+        if ($translation) {
+            return html_entity_decode($translation->translated_string);
+        }
+
+        // Check for translation based on hash and language
         $translation = TranslationModel::findOneBy(['hash = ? AND language = ?'], [$hash, $lang]);
         if ($translation) {
             return html_entity_decode($translation->translated_string);
