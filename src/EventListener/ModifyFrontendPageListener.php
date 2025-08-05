@@ -112,10 +112,6 @@ class ModifyFrontendPageListener
                     if ($node->parentNode->nodeName !== 'script' && $node->parentNode->nodeName !== 'style') {
 
                         $nodeValue = $node->nodeValue;
-                        if ($node->parentNode->nodeName === 'span' || $node->parentNode->nodeName === 'strong') {
-                            $nodeValue = '#markup#' . $nodeValue . '#markup#';
-                        }
-
                         if (preg_match('/[A-Za-z]/', $nodeValue)) {
                             $numbers = [];
                             $nodeValue = preg_replace_callback('/\d+/', function ($matches) use (&$numbers) {
