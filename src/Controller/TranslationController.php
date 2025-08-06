@@ -63,7 +63,7 @@ class TranslationController extends AbstractController
         return null;
     }
 
-    public static function fetchDeepLTranslation(string | array $text, string $targetLang): string | array
+    public static function fetchDeepLTranslation(string $text, string $targetLang): string
     {
         $config = new Config();
 
@@ -88,7 +88,7 @@ class TranslationController extends AbstractController
         ]);
 
         $body = [
-            'text' => is_array($text) ? $text : [$text],
+            'text' => $text,
             'target_lang' => Settings::getVariant($targetLang),
             'source_lang' => $sourceLang,
             'formality' => $formality,
@@ -106,12 +106,10 @@ class TranslationController extends AbstractController
 
         $response = json_decode($result, true);
 
-        if (!is_array($text) && isset($response['translations'][0]['text'])) {
+        if (isset($response['translations'][0]['text'])) {
             $translatedText = $response['translations'][0]['text'];
-        } else if (is_array($text) && isset($response['translations'])) {
-            $translatedText = $response['translations'];
         } else {
-            $translatedText = is_array($text) ? $text : [$text];
+            $translatedText = $text; // Fallback to original text if translation fails
         }
 
         return $translatedText;
