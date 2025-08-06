@@ -93,7 +93,7 @@ class TranslationController extends AbstractController
         ]);
 
         $body = [
-            'text' => $text,
+            'text' => [$text],
             'target_lang' => Settings::getVariant($targetLang),
             'source_lang' => $sourceLang,
             'formality' => $formality,
