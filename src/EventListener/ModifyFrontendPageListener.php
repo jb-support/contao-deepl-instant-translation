@@ -47,12 +47,18 @@ class ModifyFrontendPageListener
                 @$dom->loadHTML($buffer);
                 $xpath = new \DOMXPath($dom);
                 $nodes = $xpath->query('//text()');
-                $linkNodes = $xpath->query('//a[@href]');
+                $linkNodes = $xpath->query('//a[@href] | //*[@data-href]');
                 $hrefs = [];
 
                 $addToUrl = $showInUrl && $lang !== $originalLanguage;
                 foreach ($linkNodes as $linkNode) {
                     $href = $linkNode->getAttribute('href');
+
+                    if(!$href) {
+                        $href = $linkNode->getAttribute('data-href');
+                        $datahref = true;
+                    }
+
                     $title = $linkNode->getAttribute('title');
 
                     if ($title) {
@@ -70,10 +76,16 @@ class ModifyFrontendPageListener
                         } else if (str_starts_with($href, Environment::get('base'))) {
                             $href = str_replace(Environment::get('base'), Environment::get('base') . $lang . '/', ltrim($href, "/"));
                         } else {
-                            $href = $lang . '/' . ltrim($href, "/");
+                            if (!preg_match('#^/?' . preg_quote($lang, '#') . '(/|$)#', ltrim($href, "/"))) {
+                                $href = $lang . '/' . ltrim($href, "/");
+                            }
                         }
 
-                        $linkNode->setAttribute('href', $href);
+                        if($datahref) {
+                            $linkNode->setAttribute('data-href', $href);
+                        } else {
+                            $linkNode->setAttribute('href', $href);
+                        }
                     }
                 }
 
