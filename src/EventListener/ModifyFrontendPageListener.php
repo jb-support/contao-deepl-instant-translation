@@ -72,13 +72,8 @@ class ModifyFrontendPageListener
                         } else {
                             $href = $lang . '/' . ltrim($href, "/");
                         }
-                        $hrefs[] = $href;
-                    }
-                }
 
-                foreach ($linkNodes as $index => $linkNode) {
-                    if (isset($hrefs[$index])) {
-                        $linkNode->setAttribute('href', $hrefs[$index]);
+                        $linkNode->setAttribute('href', $href);
                     }
                 }
 
