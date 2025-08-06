@@ -15,7 +15,7 @@ class TranslationController extends AbstractController
         $hash = md5($text);
 
         $translationText = self::fetchTranslationFromDB($page_id, $hash, $lang);
-        if ($translationText) {
+        if ($translationText){
             return self::formatTranslationText($translationText);
         }
 
@@ -25,6 +25,8 @@ class TranslationController extends AbstractController
             // If the translation is the same as the original, prevent saving it
             return self::formatTranslationText($text);
         }
+
+
 
         $translation = new TranslationModel();
         $translation->hash = $hash;
@@ -56,12 +58,20 @@ class TranslationController extends AbstractController
     {
         $translation = TranslationModel::findOneBy(['pid = ? AND hash = ? AND language = ?'], [$page_id, $hash, $lang]);
         if ($translation) {
+            if ($translation->translated_string === null) {
+                return "[nbsp]";
+            }
+
             return $translation->translated_string;
         }
 
         // Check for translation based on hash and language
         $translation = TranslationModel::findOneBy(['hash = ? AND language = ?'], [$hash, $lang]);
         if ($translation) {
+            if ($translation->translated_string === null) {
+                return "[nbsp]";
+            }
+
             return $translation->translated_string;
         }
 
