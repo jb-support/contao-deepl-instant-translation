@@ -89,7 +89,16 @@ class ModifyFrontendPageListener
                     }
                 }
 
-                $inputNodes = $xpath->query('//input[@placeholder] | //textarea[@placeholder]');
+                $optionNodes = $xpath->query('//select/option');
+                foreach ($optionNodes as $optionNode) {
+                    $optionText = $optionNode->textContent;
+                    if (trim($optionText) !== '') {
+                        $translatedOption = TranslationController::translateText($optionText, $lang, $page_id);
+                        $optionNode->textContent = $translatedOption;
+                    }
+                }
+
+                $inputNodes = $xpath->query('//input[@placeholder] | //textarea[@placeholder] | //button[@title]');
                 foreach ($inputNodes as $inputNode) {
                     $placeholder = $inputNode->getAttribute('placeholder');
                     if ($placeholder) {
