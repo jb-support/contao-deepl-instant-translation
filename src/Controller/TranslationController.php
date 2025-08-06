@@ -14,16 +14,16 @@ class TranslationController extends AbstractController
         $text = preg_replace('/(?<= )\s+|\s+(?= )/', '', $text); // Remove extra spaces except one on each side if present
         $hash = md5($text);
 
-        $translation = self::fetchTranslationFromDB($page_id, $hash, $lang);
-        if ($translation) {
-            return $translation;
+        $translationText = self::fetchTranslationFromDB($page_id, $hash, $lang);
+        if ($translationText) {
+            return self::formatTranslationText($translationText);
         }
 
         $translatedText = self::fetchDeepLTranslation($text, $lang);
 
         if (trim($translatedText) == trim($text)) {
             // If the translation is the same as the original, prevent saving it
-            return $text;
+            return self::formatTranslationText($text);
         }
 
         $translation = new TranslationModel();
@@ -35,7 +35,7 @@ class TranslationController extends AbstractController
         $translation->pid = $page_id;
         $translation->save();
 
-        return html_entity_decode($translatedText);
+        return self::formatTranslationText($translatedText);
     }
 
     public static function forceTranslate(int $translation_id): string
@@ -56,13 +56,13 @@ class TranslationController extends AbstractController
     {
         $translation = TranslationModel::findOneBy(['pid = ? AND hash = ? AND language = ?'], [$page_id, $hash, $lang]);
         if ($translation) {
-            return html_entity_decode($translation->translated_string);
+            return $translation->translated_string;
         }
 
         // Check for translation based on hash and language
         $translation = TranslationModel::findOneBy(['hash = ? AND language = ?'], [$hash, $lang]);
         if ($translation) {
-            return html_entity_decode($translation->translated_string);
+            return $translation->translated_string;
         }
 
         return null;
@@ -118,5 +118,14 @@ class TranslationController extends AbstractController
         }
 
         return $translatedText;
+    }
+
+    private static function formatTranslationText(string $text): string
+    {
+        // Remove extra spaces except one on each side if present
+        $text = html_entity_decode($text);
+        $text = str_replace('[nbsp]', ' ', $text);
+
+        return $text;
     }
 }
