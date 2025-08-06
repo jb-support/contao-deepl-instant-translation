@@ -119,6 +119,27 @@ class TranslationController extends AbstractController
         $result = curl_exec($ch);
         curl_close($ch);
 
+        $httpCode = 0;
+        if ($ch) {
+            $info = curl_getinfo($ch);
+            $httpCode = $info['http_code'] ?? 0;
+        }
+
+        if ($httpCode === 429) {
+            sleep(1);
+            $ch = curl_init();
+            curl_setopt($ch, CURLOPT_URL, $url);
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+            curl_setopt($ch, CURLOPT_POST, 1);
+            curl_setopt($ch, CURLOPT_HTTPHEADER, [
+            "Content-Type: application/json",
+            "Authorization: DeepL-Auth-Key " . $deeplKey
+            ]);
+            curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($body));
+            $result = curl_exec($ch);
+            curl_close($ch);
+        }
+
         $response = json_decode($result, true);
 
         if (isset($response['translations'][0]['text'])) {
