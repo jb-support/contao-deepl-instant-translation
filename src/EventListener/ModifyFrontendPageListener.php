@@ -21,10 +21,11 @@ class ModifyFrontendPageListener
 
     public function modifyTemplate(string $buffer, string $template): string
     {
-        if ($template === 'fe_page' && !empty($this->DEEPL_KEY)) {
+        if ($template == "fe_page" && !empty($this->DEEPL_KEY)) {
             $enabledLanguages = $this->config->getEnabledLanguages();
             $originalLanguage = $this->config->getOriginalLanguage();
             $showInUrl = $this->config->getShowInUrl();
+
 
             $request = System::getContainer()->get('request_stack')->getCurrentRequest();
             $domain = $request->getSchemeAndHttpHost();
@@ -48,13 +49,21 @@ class ModifyFrontendPageListener
                 $xpath = new \DOMXPath($dom);
                 $nodes = $xpath->query('//text()');
                 $linkNodes = $xpath->query('//a[@href] | //*[@data-href]');
-                $hrefs = [];
+
+                $metaDescriptionNodes = $xpath->query('//meta[@name="description"]');
+                foreach ($metaDescriptionNodes as $metaNode) {
+                    $description = $metaNode->getAttribute('content');
+                    if ($description) {
+                        $translatedDescription = TranslationController::translateText($description, $lang, $page_id);
+                        $metaNode->setAttribute('content', $translatedDescription);
+                    }
+                }
 
                 $addToUrl = $showInUrl && $lang !== $originalLanguage;
                 foreach ($linkNodes as $linkNode) {
                     $href = $linkNode->getAttribute('href');
 
-                    if(!$href) {
+                    if (!$href) {
                         $href = $linkNode->getAttribute('data-href');
                         $datahref = true;
                     }
@@ -81,7 +90,7 @@ class ModifyFrontendPageListener
                             }
                         }
 
-                        if($datahref) {
+                        if ($datahref) {
                             $linkNode->setAttribute('data-href', $href);
                         } else {
                             $linkNode->setAttribute('href', $href);
@@ -164,7 +173,7 @@ class ModifyFrontendPageListener
             }
         }
 
-        return $buffer;
+        return htmlspecialchars_decode($buffer);
     }
 
     private function addLanghref($domain, $pathInfo, $enabledLanguages, $buffer)
