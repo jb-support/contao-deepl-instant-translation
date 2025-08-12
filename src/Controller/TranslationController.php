@@ -21,13 +21,6 @@ class TranslationController extends AbstractController
 
         $translatedText = self::fetchDeepLTranslation($text, $lang);
 
-        if (trim($translatedText) == trim($text)) {
-            // If the translation is the same as the original, prevent saving it
-            return self::formatTranslationText($text);
-        }
-
-
-
         $translation = new TranslationModel();
         $translation->hash = $hash;
         $translation->tstamp = time();
