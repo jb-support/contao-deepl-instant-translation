@@ -170,7 +170,7 @@ class translation_module
 
         $response = $this->fetchUsageInfo($deepl_key);
 
-        $pro_plan = $response['plan'] == "API Pro" ? true : false;
+        $pro_plan = $response['pro_plan'];
 
         if ($pro_plan != (bool) $dc->activeRecord->deepl_pro_plan) {
             $dc->activeRecord->deepl_pro_plan = $pro_plan;
@@ -181,7 +181,7 @@ class translation_module
 
     private function generateUsageString($response)
     {
-        $plan = $response['plan'];
+        $plan = $response['pro_plan'] ? 'API Pro' : 'API Free';
 
         $planstring = sprintf(
             $GLOBALS['TL_LANG']['tl_module']['usage_info']['plan'],
@@ -244,10 +244,10 @@ class translation_module
         }
 
         $response = json_decode($result, true);
-        $response['plan'] = $pro_plan ? 'API Pro' : 'API Free';
+        $response['pro_plan'] = $pro_plan;
         curl_close($ch);
 
-        return $response ?? "Error fetching usage info. Please check your API key.";
+        return $response;
     }
 
     public function getGlossaries()

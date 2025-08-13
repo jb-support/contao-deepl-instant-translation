@@ -15,6 +15,7 @@ use Contao\DC_Table;
 use Contao\PageModel;
 use Contao\Controller;
 use Contao\DataContainer;
+use JBSupport\ContaoDeeplInstantTranslationBundle\Settings;
 use JBSupport\ContaoDeeplInstantTranslationBundle\Controller\TranslationController;
 
 $GLOBALS['TL_DCA']['tl_jb_translation'] = array(
@@ -29,6 +30,7 @@ $GLOBALS['TL_DCA']['tl_jb_translation'] = array(
 				'hash,language,pid' => 'index'
 			)
 		),
+		'notCreatable' => true,
 		'onload_callback' => array(array('tl_jb_translation', 'handleTranslate')),
 	),
 
@@ -36,7 +38,7 @@ $GLOBALS['TL_DCA']['tl_jb_translation'] = array(
 	'list' => array(
 		'sorting' => array(
 			'mode'                    => 2,
-			'panelLayout'             => 'filter;search',
+			'panelLayout'             => 'filter;sort,search,limit',
 			'fields'                  => array('pid', 'original_string', 'translated_string', 'language'),
 			'defaultSearchField'	  => 'textarea'
 		),
@@ -77,7 +79,7 @@ $GLOBALS['TL_DCA']['tl_jb_translation'] = array(
 
 	// Palettes
 	'palettes' => array(
-		'default'                     => '{general_legend},original_string,translated_string;',
+		'default' 					  => '{general_legend},hash,pid,original_string,translated_string;',
 	),
 	// Fields
 	'fields' => array(
@@ -88,10 +90,17 @@ $GLOBALS['TL_DCA']['tl_jb_translation'] = array(
 			'sql'                     => "int(10) unsigned NOT NULL default 0"
 		),
 		'hash' => array(
+			'inputType'               => 'text',
+			'eval'                    => array('unique' => true, 'disabled' => true, 'tl_class' => 'w50'),
 			'sql'                     => "VARCHAR(32) NULL default NULL"
 		),
 		'language' => array(
 			'filter' 				  => true,
+			'inputType'               => 'select',
+			'eval'                    => array('tl_class' => 'w50'),
+			'options_callback'        => function () {
+				return Settings::getTranslatedLanguagesArray();
+			},
 			'sql'                     => "VARCHAR(2) NULL default NULL"
 		),
 		'pid' => array(
@@ -104,12 +113,14 @@ $GLOBALS['TL_DCA']['tl_jb_translation'] = array(
 		),
 		'original_string' => array(
 			'search'                  => true,
+			'sorting'                 => true,
 			'inputType'               => 'textarea',
 			'eval' 				      => array('disabled' => true, 'allowHtml' => true, 'preserveTags' => true, 'tl_class' => 'clr'),
 			'sql'                     => "text NULL default NULL",
 		),
 		'translated_string' => array(
 			'search' 				  => true,
+			'sorting'                 => true,
 			'inputType'               => 'textarea',
 			'eval' 				      => array('decodeEntities' => false, 'allowHtml' => true, 'tl_class' => 'clr'),
 			'sql'                     => "text NULL default NULL"
@@ -148,6 +159,7 @@ class tl_jb_translation extends Backend
 		$row['pid'] = $pageModel ? "<a href='" . $url . "' target='_blank'>" . $pageModel->title . "</a>" : '-';
 		$row['original_string'] = $this->truncateString($row['original_string'], 10);
 		$row['translated_string'] = $this->truncateString($row['translated_string'], 10);
+		$row['language'] = Settings::getTranslatedLanguageOnly($row['language']);
 
 		return [$row["pid"], $row['original_string'], $row['translated_string'], $row['language']];
 	}
@@ -162,23 +174,6 @@ class tl_jb_translation extends Backend
 		}
 	}
 
-	public function getHtmlString($dc)
-	{
-		$original_html = htmlspecialchars($dc->value);
-
-		return "<div class=\"clr widget\">
-		<h3>" . $GLOBALS['TL_LANG']['tl_jb_translation']['original_html'][0] . "</h3>
-		<p>" . $original_html . "</p>
-		</div>";
-	}
-
-	public function getRenderedString($dc)
-	{
-		return "<div class=\"clr widget\">
-		<h3>" . $GLOBALS['TL_LANG']['tl_jb_translation']['original_html'][1] . "</h3>
-		" . $dc->activeRecord->original_string . "
-		</div>";
-	}
 
 	public function deeplIcon($row, $href, $label, $title, $icon, $dc)
 	{

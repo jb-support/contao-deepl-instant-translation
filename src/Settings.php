@@ -98,6 +98,14 @@ class Settings
 		return self::$languages[$lang];
 	}
 
+	public static function getTranslatedLanguageOnly($lang) {
+		return $GLOBALS['TL_LANG']['lang'][$lang] ?? '';
+	}
+
+	public static function getTranslatedLanguagesArray() {
+		return $GLOBALS['TL_LANG']['lang'] ?? [];
+	}
+
 	public static function getTranslatingInProgressStrings()
 	{
 		$result = [];

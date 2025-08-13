@@ -15,7 +15,7 @@ class TranslationController extends AbstractController
         $hash = md5($text);
 
         $translationText = self::fetchTranslationFromDB($page_id, $hash, $lang);
-        if ($translationText){
+        if ($translationText) {
             return self::formatTranslationText($translationText);
         }
 
@@ -112,10 +112,11 @@ class TranslationController extends AbstractController
         $result = curl_exec($ch);
         curl_close($ch);
 
-        $httpCode = 0;
-        if ($ch) {
-            $info = curl_getinfo($ch);
-            $httpCode = $info['http_code'] ?? 0;
+        $info = curl_getinfo($ch);
+        $httpCode = $info['http_code'];
+
+        if ($httpCode === 456) {
+            return $text;
         }
 
         if ($httpCode === 429) {
@@ -125,8 +126,8 @@ class TranslationController extends AbstractController
             curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
             curl_setopt($ch, CURLOPT_POST, 1);
             curl_setopt($ch, CURLOPT_HTTPHEADER, [
-            "Content-Type: application/json",
-            "Authorization: DeepL-Auth-Key " . $deeplKey
+                "Content-Type: application/json",
+                "Authorization: DeepL-Auth-Key " . $deeplKey
             ]);
             curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($body));
             $result = curl_exec($ch);
