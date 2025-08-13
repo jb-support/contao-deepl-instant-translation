@@ -59,6 +59,16 @@ class ModifyFrontendPageListener
                     }
                 }
 
+                $actionNodes = $xpath->query('//form[@action]');
+                foreach ($actionNodes as $actionNode) {
+                    $action = $actionNode->getAttribute('action');
+                    $notranslate = $actionNode->hasAttribute('class') && strpos($actionNode->getAttribute('class'), 'notranslate') !== false;
+                    if ($action && !$notranslate) {
+                        $newAction = $this->addLang($action, $lang);
+                        $actionNode->setAttribute('action', $newAction);
+                    }
+                }
+
                 $addToUrl = $showInUrl && $lang !== $originalLanguage;
                 foreach ($linkNodes as $linkNode) {
                     $href = $linkNode->getAttribute('href');
@@ -80,15 +90,7 @@ class ModifyFrontendPageListener
                             continue;
                         }
 
-                        if ($href == Environment::get('base')) {
-                            $href = Environment::get('base') . $lang . '/';
-                        } else if (str_starts_with($href, Environment::get('base'))) {
-                            $href = str_replace(Environment::get('base'), Environment::get('base') . $lang . '/', ltrim($href, "/"));
-                        } else {
-                            if (!preg_match('#^/?' . preg_quote($lang, '#') . '(/|$)#', ltrim($href, "/"))) {
-                                $href = $lang . '/' . ltrim($href, "/");
-                            }
-                        }
+                       $href = $this->addLang($href, $lang);
 
                         if ($datahref) {
                             $linkNode->setAttribute('data-href', $href);
@@ -188,5 +190,20 @@ class ModifyFrontendPageListener
         $buffer = str_replace('</head>', $hreflangLinks . '</head>', $buffer);
 
         return $buffer;
+    }
+
+    private function addLang($href, $lang)
+    {
+        if ($href == Environment::get('base')) {
+            $href = Environment::get('base') . $lang . '/';
+        } else if (str_starts_with($href, Environment::get('base'))) {
+            $href = str_replace(Environment::get('base'), Environment::get('base') . $lang . '/', ltrim($href, "/"));
+        } else {
+            if (!preg_match('#^/?' . preg_quote($lang, '#') . '(/|$)#', ltrim($href, "/"))) {
+                $href = $lang . '/' . ltrim($href, "/");
+            }
+        }
+
+        return $href;
     }
 }
