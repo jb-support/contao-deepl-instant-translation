@@ -9,7 +9,13 @@ $GLOBALS['TL_DCA']['tl_module']['config']['onsubmit_callback'][] = array('transl
 $GLOBALS['TL_DCA']['tl_module']['fields']['deepl_key'] = [
     'exclude'                 => true,
     'inputType'               => 'text',
-    'eval'                    => array('maxlength' => 255, 'tl_class' => 'clr w50', 'doNotSaveEmpty' => true),
+    'eval'                    => array(
+        'maxlength' => 255,
+        'tl_class' => 'clr w50',
+        'doNotSaveEmpty' => true,
+        'mandatory' => (class_exists('translation_module') && (new translation_module())->hasDeepLKey()) ? false : true,
+        'placeholder' => (class_exists('translation_module') && (new translation_module())->hasDeepLKey()) ? '**************' : ''
+    ),
     'sql'                     => "varchar(255) NOT NULL default ''",
 ];
 
@@ -142,6 +148,13 @@ class translation_module
         file_put_contents($configPath, $content);
 
         return '';
+    }
+
+    public function hasDeepLKey()
+    {
+        $config = new Config();
+
+        return !empty($config->getDeepLKey());
     }
 
     private function handleConfigValue($value)
