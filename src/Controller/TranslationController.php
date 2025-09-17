@@ -77,13 +77,15 @@ class TranslationController extends AbstractController
 
         $deeplKey = $config->getDeeplKey();
         $sourceLang = $config->getOriginalLanguage();
-        $url = $config->getApiUrl();
+        $base = $config->getBaseUrl();
         $formality = $config->getFormality();
         $glossaryId = $config->getGlossaryId();
 
         if (empty($deeplKey)) {
             return $text;
         }
+
+        $url = $base . "/v2/translate";
 
         $ch = curl_init();
 

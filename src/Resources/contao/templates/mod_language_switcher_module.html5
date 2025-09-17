@@ -6,7 +6,7 @@
     ?>
     <select name="lang" id="lang" class="notranslate translation-language-select">
         <?php foreach ($this->languages as $alpha2 => $language): ?>
-        <option class="translation-language-option" value="<?= $alpha2 ?>"
+        <option class="translation-language-option<?= $this->lang == $alpha2 ? ' selected' : '' ?>" value="<?= $alpha2 ?>"
             <?= $this->lang == $alpha2 ? 'selected' : '' ?>><?= $language ?></option>
         <?php endforeach; ?>
     </select>
@@ -14,7 +14,7 @@
     <?php case 'radio': ?>
     <ul class="notranslate translation-language-list">
         <?php foreach ($this->languages as $alpha2 => $language): ?>
-        <li class="translation-language-item">
+        <li class="translation-language-item<?= $this->lang == $alpha2 ? ' active' : '' ?>">
             <label>
                 <input type="radio" name="lang" value="<?= $alpha2 ?>"
                     <?= $this->lang == $alpha2 ? 'checked' : '' ?>>
@@ -30,7 +30,7 @@
             <?php foreach ($this->languages as $alpha2 => $language): ?>
             <li class="translation-language-item">
                 <button type="submit" name="lang" value="<?= $alpha2 ?>"
-                    class="translation-language-button <?= $this->lang == $alpha2 ? 'active' : '' ?>">
+                    class="translation-language-button<?= $this->lang == $alpha2 ? ' active' : '' ?>">
                     <?= $language ?>
                 </button>
             </li>

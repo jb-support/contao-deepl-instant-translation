@@ -1,7 +1,7 @@
 <?php
 $GLOBALS['TL_LANG']['FMD']['language_switcher_module'] = ['Translation Language Switcher', ''];
 
-$GLOBALS['TL_LANG']['tl_module']['original_language'] = ['Original Language', 'Original language of the page, e.g.: English (en)'];
+$GLOBALS['TL_LANG']['tl_module']['original_language'] = ['Source Language', 'Original language of the page, e.g.: English (en)'];
 $GLOBALS['TL_LANG']['tl_module']['look_legend'] = 'Appearance';
 $GLOBALS['TL_LANG']['tl_module']['usage_legend'] = 'Usage Information';
 $GLOBALS['TL_LANG']['tl_module']['languages_legend'] = 'Languages';
@@ -10,7 +10,7 @@ $GLOBALS['TL_LANG']['tl_module']['deepl_key'] = ['DeepL API Key', 'e.g.: 6413***
 $GLOBALS['TL_LANG']['tl_module']['languages'] = ['Target Languages', 'Languages to show in the switcher'];
 $GLOBALS['TL_LANG']['tl_module']['show_modal'] = ['Show Modal', 'Show a modal dialog while translating'];
 $GLOBALS['TL_LANG']['tl_module']['element_type'] = ['Element Type', 'Choose the type of element to display (Select, Radio or Buttons)'];
-$GLOBALS['TL_LANG']['tl_module']['in_url'] = ['In URL', 'Include the language in the URL, e.g.: /en/'];
+$GLOBALS['TL_LANG']['tl_module']['in_url'] = ['Language Slug', 'Include the language in the URL, e.g.: /en/'];
 $GLOBALS['TL_LANG']['tl_module']['element_label_type'] = ['Label Type', 'Choose the type of label to display (Short: EN, DE or Long: English, Deutsch)'];
 $GLOBALS['TL_LANG']['tl_module']['element_label_type']['short'] = 'Short Label';
 $GLOBALS['TL_LANG']['tl_module']['element_label_type']['long'] = 'Long Label';
@@ -21,7 +21,6 @@ $GLOBALS['TL_LANG']['tl_module']['formality']['prefer_less'] = 'Less Formal';
 $GLOBALS['TL_LANG']['tl_module']['formality']['default'] = 'Default';
 
 $GLOBALS['TL_LANG']['tl_module']['glossary_id'] = ['Glossary', 'Glossaries must be created in DeepL first.'];
-$GLOBALS['TL_LANG']['tl_module']['glossary_id']['none'] = 'No Glossary';
 
 $GLOBALS['TL_LANG']['tl_module']['usage_info']['label'] = 'DeepL API Usage Information';
 $GLOBALS['TL_LANG']['tl_module']['usage_info']['no_key'] = 'No DeepL API key provided.';
