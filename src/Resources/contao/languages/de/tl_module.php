@@ -5,6 +5,7 @@ $GLOBALS['TL_LANG']['tl_module']['original_language'] = ['Originalsprache', 'Ori
 $GLOBALS['TL_LANG']['tl_module']['look_legend'] = 'Aussehen';
 $GLOBALS['TL_LANG']['tl_module']['usage_legend'] = 'Nutzungsinformationen';
 $GLOBALS['TL_LANG']['tl_module']['languages_legend'] = 'Sprachen';
+$GLOBALS['TL_LANG']['tl_module']['disable_legend'] = 'Deaktivieren';
 
 $GLOBALS['TL_LANG']['tl_module']['deepl_key'] = ['DeepL API Schlüssel', 'z.B.: 6413******3:fx'];
 $GLOBALS['TL_LANG']['tl_module']['languages'] = ['Zielsprachen', 'Sprachen, die im Switcher angezeigt werden sollen.'];
@@ -19,6 +20,7 @@ $GLOBALS['TL_LANG']['tl_module']['formality'] = ['Formalität', 'Wählen Sie die
 $GLOBALS['TL_LANG']['tl_module']['formality']['prefer_more'] = 'Formeller';
 $GLOBALS['TL_LANG']['tl_module']['formality']['prefer_less'] = 'Weniger formell';
 $GLOBALS['TL_LANG']['tl_module']['formality']['default'] = 'Standard';
+$GLOBALS['TL_LANG']['tl_module']['disabled'] = ['Deaktivieren', 'Deaktiviert das Modul, um unerwolltes Verbrauchen von Kontingent zu verhindern. Versteckt auch den Sprachwechsler.'];
 
 $GLOBALS['TL_LANG']['tl_module']['glossary_id'] = ['Glossar', 'Glossare müssen bei DeepL erstmal erstellt werden.'];
 

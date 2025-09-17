@@ -6,6 +6,7 @@ class Config
 {
     private const FIELDS = [
         'deepl_key',
+        'deepl_pro_plan',
         'original_language',
         'languages',
         'show_modal',
@@ -15,6 +16,7 @@ class Config
         'element_label_type',
         'formality',
         'glossary_id',
+        'disabled'
     ];
 
     private array $config;
@@ -107,5 +109,10 @@ class Config
     public function getGlossaryId(): ?string
     {
         return empty($this->config['glossary_id']) ? null : $this->config['glossary_id'];
+    }
+
+    public function getDisabled(): bool
+    {
+        return (bool) ($this->config['disabled'] ?? false);
     }
 }

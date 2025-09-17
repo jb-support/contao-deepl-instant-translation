@@ -5,6 +5,12 @@ use JBSupport\ContaoDeeplInstantTranslationBundle\Settings;
 
 $GLOBALS['TL_DCA']['tl_module']['config']['onsubmit_callback'][] = array('translation_module', 'writeConfig');
 
+$GLOBALS['TL_DCA']['tl_module']['fields']['disabled'] = [
+    'exclude'                 => true,
+    'inputType'               => 'checkbox',
+    'eval'                    => ['tl_class' => 'w50'],
+    'sql'                     => "TINYINT(1) NULL default '0'",
+];
 
 $GLOBALS['TL_DCA']['tl_module']['fields']['deepl_key'] = [
     'exclude'                 => true,
@@ -107,7 +113,7 @@ $GLOBALS['TL_DCA']['tl_module']['fields']['formality'] = [
 ];
 
 $GLOBALS['TL_DCA']['tl_module']['palettes']['language_switcher_module'] =
-    '{title_legend},name, type, deepl_key, in_url, agent_redirect; {languages_legend}, languages, original_language, glossary_id, formality; {look_legend}, element_type, show_modal, element_label_type; {usage_legend},usage_info';
+    '{disable_legend},disabled;{title_legend},name, type, deepl_key, in_url, agent_redirect; {languages_legend}, languages, original_language, glossary_id, formality; {look_legend}, element_type, show_modal, element_label_type; {usage_legend},usage_info';
 
 class translation_module
 {

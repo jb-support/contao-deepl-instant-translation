@@ -47,6 +47,7 @@ class LanguageSwitcherModuleController extends AbstractFrontendModuleController
         $template->originalLanguage = $model->original_language;
         $template->lang = $language;
         $template->showModal = $model->show_modal ? true : false;
+        $template->disabled = (bool) $model->disabled;
         $template->elementType = $model->element_type;
         $template->requestToken = System::getContainer()->get('contao.csrf.token_manager')->getDefaultTokenValue();
         $template->translatingStrings = json_encode($translationInProgressStrings);

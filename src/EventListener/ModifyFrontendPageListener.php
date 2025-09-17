@@ -21,7 +21,7 @@ class ModifyFrontendPageListener
 
     public function modifyTemplate(string $buffer, string $template): string
     {
-        if ($template != "fe_page" || empty($this->DEEPL_KEY)) {
+        if ($template != "fe_page" || empty($this->DEEPL_KEY) || $this->config->getDisabled()) {
             return $buffer;
         }
 

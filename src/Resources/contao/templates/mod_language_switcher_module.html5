@@ -1,3 +1,4 @@
+<?php if (!$this->disabled): ?>
 <form method="POST" action="" class="translation-language-switcher">
     <input type="hidden" name="REQUEST_TOKEN" value="<?= $this->requestToken ?>">
     <?php
@@ -6,8 +7,8 @@
     ?>
     <select name="lang" id="lang" class="notranslate translation-language-select">
         <?php foreach ($this->languages as $alpha2 => $language): ?>
-        <option class="translation-language-option<?= $this->lang == $alpha2 ? ' selected' : '' ?>" value="<?= $alpha2 ?>"
-            <?= $this->lang == $alpha2 ? 'selected' : '' ?>><?= $language ?></option>
+        <option class="translation-language-option<?= $this->lang == $alpha2 ? ' selected' : '' ?>"
+            value="<?= $alpha2 ?>" <?= $this->lang == $alpha2 ? 'selected' : '' ?>><?= $language ?></option>
         <?php endforeach; ?>
     </select>
     <?php break; ?>
@@ -137,3 +138,4 @@
         }
     }
 </style>
+<?php endif; ?>

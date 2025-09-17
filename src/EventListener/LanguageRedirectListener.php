@@ -21,6 +21,10 @@ class LanguageRedirectListener
             return;
         }
 
+        if ($this->config->getDisabled()) {
+            return;
+        }
+
         $request = $event->getRequest();
         $pathInfo = $request->getPathInfo();
 

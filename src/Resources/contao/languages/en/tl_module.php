@@ -5,6 +5,7 @@ $GLOBALS['TL_LANG']['tl_module']['original_language'] = ['Source Language', 'Ori
 $GLOBALS['TL_LANG']['tl_module']['look_legend'] = 'Appearance';
 $GLOBALS['TL_LANG']['tl_module']['usage_legend'] = 'Usage Information';
 $GLOBALS['TL_LANG']['tl_module']['languages_legend'] = 'Languages';
+$GLOBALS['TL_LANG']['tl_module']['disable_legend'] = 'Disable';
 
 $GLOBALS['TL_LANG']['tl_module']['deepl_key'] = ['DeepL API Key', 'e.g.: 6413******3:fx'];
 $GLOBALS['TL_LANG']['tl_module']['languages'] = ['Target Languages', 'Languages to show in the switcher'];
@@ -19,6 +20,7 @@ $GLOBALS['TL_LANG']['tl_module']['formality'] = ['Formality', 'Choose the formal
 $GLOBALS['TL_LANG']['tl_module']['formality']['prefer_more'] = 'More Formal';
 $GLOBALS['TL_LANG']['tl_module']['formality']['prefer_less'] = 'Less Formal';
 $GLOBALS['TL_LANG']['tl_module']['formality']['default'] = 'Default';
+$GLOBALS['TL_LANG']['tl_module']['disabled'] = ['Disabled', 'Disables the module to prevent unwanted consumption of quota. Also hides the language switcher.'];
 
 $GLOBALS['TL_LANG']['tl_module']['glossary_id'] = ['Glossary', 'Glossaries must be created in DeepL first.'];
 
