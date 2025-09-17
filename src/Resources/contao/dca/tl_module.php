@@ -8,7 +8,7 @@ $GLOBALS['TL_DCA']['tl_module']['config']['onsubmit_callback'][] = array('transl
 $GLOBALS['TL_DCA']['tl_module']['fields']['disabled'] = [
     'exclude'                 => true,
     'inputType'               => 'checkbox',
-    'eval'                    => ['tl_class' => 'w50'],
+    'eval'                    => ['tl_class' => 'clr w100'],
     'sql'                     => "TINYINT(1) NULL default '0'",
 ];
 
