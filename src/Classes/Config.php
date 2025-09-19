@@ -6,7 +6,7 @@ class Config
 {
     private const FIELDS = [
         'deepl_key',
-        'deepl_pro_plan',
+        // 'deepl_pro_plan', --- IGNORE --- set based on deepl_key
         'original_language',
         'languages',
         'show_modal',
