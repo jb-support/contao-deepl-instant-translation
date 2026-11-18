@@ -2,84 +2,77 @@
 
 namespace JBSupport\ContaoDeeplInstantTranslationBundle\EventListener;
 
-
-use DOMDocument;
-use DOMXPath;
 use Contao\PageModel;
-use Contao\Environment;
-use Contao\System;
+use Symfony\Component\HttpFoundation\RequestStack;
 use JBSupport\ContaoDeeplInstantTranslationBundle\Classes\Config;
 use JBSupport\ContaoDeeplInstantTranslationBundle\Service\PageTranslator;
 use JBSupport\ContaoDeeplInstantTranslationBundle\Model\PageTranslationModel;
 use JBSupport\ContaoDeeplInstantTranslationBundle\Controller\TranslationController;
 
-
 class ModifyFrontendPageListener
 {
-    private Config $config;
+    public function __construct(
+        private Config $config,
+        private RequestStack $requestStack,
+        private PageTranslator $translator
+    ) {}
 
-    private $dom;
-    private $xpath;
-
-    private $batch = [];
-    private $nodeMap = [];
-    private $restorationMap = [];
-
-    public function __construct()
+    public function onOutputFrontendTemplate(string $buffer, string $template): string
     {
-        $this->config = new Config();
-    }
-
-    public function modifyTemplate(string $buffer, string $template): string
-    {
-        $buffer = mb_convert_encoding($buffer, 'HTML-ENTITIES', 'UTF-8');
-
-        if ($template != "fe_page" || $this->config->getDisabled()) {
+        if ($template !== 'fe_page' || $this->config->getDisabled()) {
             return $buffer;
         }
 
-        $enabledLanguages = $this->config->getEnabledLanguages();
+        $request = $this->requestStack->getCurrentRequest();
+        if (!$request) {
+            return $buffer;
+        }
+
         $originalLanguage = $this->config->getOriginalLanguage();
-        $showInUrl = $this->config->getShowInUrl();
-        $translationProvider = $this->config->getTranslationProvider();
+        $lang = $request->attributes->get('lang_code', $originalLanguage);
+        $enabledLanguages = $this->config->getEnabledLanguages();
 
-        $request = System::getContainer()->get('request_stack')->getCurrentRequest();
-        $lang = $request->attributes->get('lang_code') ?? $originalLanguage;
-
-        $existingLanguages = [];
-        $translations = PageTranslationModel::findBy(['alias = ?'], [$request->getPathInfo()]);
-        if ($translations) {
-            $languages = $translations->fetchEach("language");
-            array_unshift($languages, $originalLanguage);
-            $showLanguages = array_intersect($enabledLanguages, $languages);
-        }
-
-        if (!$lang || empty($enabledLanguages) || !in_array($lang, $enabledLanguages) || $lang == $originalLanguage ) {
+        if (!$lang || empty($enabledLanguages) || !in_array($lang, $enabledLanguages, true) || $lang === $originalLanguage) {
             return $buffer;
         }
 
-        global $objPage;
-        $pageId = $objPage->id;
 
-        $translator = new PageTranslator($this->config);
-        $translatedHtml = $translator->translatePageContent($buffer, $lang, $pageId, $translationProvider);
+        /** @var PageModel|null $pageModel */
+        $pageModel = $request->attributes->get('pageModel');
+        if (!$pageModel) {
+            return $buffer;
+        }
 
-        $alias = $objPage->alias != "index" ? "/" . $objPage->alias : "/";
+        $bufferToTranslate = mb_convert_encoding($buffer, 'HTML-ENTITIES', 'UTF-8');
 
+        $translatedHtml = $this->translator->translatePageContent(
+            $bufferToTranslate,
+            $lang,
+            $pageModel->id,
+            $this->config->getTranslationProvider()
+        );
+
+        $alias = $pageModel->alias !== 'index' ? '/' . $pageModel->alias : '/';
         $translation = PageTranslationModel::findOneBy(['alias = ? AND language = ?'], [$alias, $lang]);
+
+        $isNew = false;
+
         if (!$translation) {
             $translation = new PageTranslationModel();
             $translation->alias = $alias;
             $translation->language = $lang;
-            $hash = hash('md5', $translatedHtml);
-            $translation->hash = $hash;
+            $translation->hash = hash('md5', $translatedHtml);
             $translation->translated = "1";
+            $isNew = true;
         }
 
-        $translation->tstamp = time();
-        $translation->save();
 
-        $aliasTranslation = TranslationController::translateAlias($translation);
+        if ($isNew) {
+            $translation->tstamp = time();
+            $translation->save();
+        }
+
+        TranslationController::translateAlias($translation);
 
         return $translatedHtml;
     }

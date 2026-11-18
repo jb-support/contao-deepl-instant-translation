@@ -24,11 +24,11 @@ class LanguageSwitcherModuleController extends AbstractFrontendModuleController
             because the ModuleModel already contains all the settings for the module, except the DeepL key.
         */
 
-        $enabledLanguages_old = unserialize($model->languages);
+        // $enabledLanguages_old = unserialize($model->languages);
         $enabledLanguages = [];
         $alias = $request->getPathInfo();
         $translations = PageTranslationModel::findBy(['alias LIKE ?'], [$alias]);
-        if($translations) {
+        if ($translations) {
             $enabledLanguages = $translations->fetchEach("language");
             array_unshift($enabledLanguages, $model->original_language);
             $enabledLanguages = array_values($enabledLanguages);
@@ -39,7 +39,7 @@ class LanguageSwitcherModuleController extends AbstractFrontendModuleController
         $enabledLanguages = array_unique($enabledLanguages);
         $enabledLanguagesSort = array_unique($enabledLanguagesSort);
 
-        usort($enabledLanguages, function($a, $b) use ($enabledLanguagesSort) {
+        usort($enabledLanguages, function ($a, $b) use ($enabledLanguagesSort) {
             $aIndex = array_search($a, $enabledLanguagesSort);
             $bIndex = array_search($b, $enabledLanguagesSort);
             return $aIndex - $bIndex;
@@ -51,7 +51,7 @@ class LanguageSwitcherModuleController extends AbstractFrontendModuleController
         $languagesArr[0] = [$model->original_language => $short_labels ? strtoupper($model->original_language) : Settings::getLanguageString($model->original_language)];
 
         $step = 0;
-        for($i = 1; $i < count($enabledLanguages); $i++) {
+        for ($i = 1; $i < count($enabledLanguages); $i++) {
             if ($i % 5 == 0 && $i != 0) {
                 $step++;
             }

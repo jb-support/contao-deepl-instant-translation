@@ -96,10 +96,6 @@ class PageTranslator
             $node->setAttribute('content', 'noindex,nofollow');
         }
 
-        foreach ($this->xpath->query('//meta[@name="robots"]') as $node) {
-            $node->setAttribute('content', 'noindex,nofollow');
-        }
-
         foreach ($this->xpath->query('//link[@rel="canonical"]') as $node) {
             $node->parentNode->removeChild($node);
         }
@@ -247,6 +243,11 @@ class PageTranslator
 
     private function applyTranslations(array $translatedBatch): void
     {
+        // Build an allowed tags string for strip_tags (e.g., "<a><abbr><b>...<num>")
+        $allowedTagsList = array_diff($this->inlineTags, ['#text']);
+        $allowedTagsList[] = 'num'; // Allow your custom number placeholder
+        $allowedTags = '<' . implode('><', $allowedTagsList) . '>';
+
         foreach ($translatedBatch as $id => $translatedText) {
             if (!isset($this->nodeMap[$id])) continue;
 
@@ -273,8 +274,12 @@ class PageTranslator
                     $node->removeChild($node->firstChild);
                 }
 
+                // XSS PREVENTION: Strip any tags that DeepL might have unescaped,
+                // allowing ONLY the safe inline tags defined in your class.
+                $safeTranslatedText = strip_tags($translatedText, $allowedTags);
+
                 $tempDoc = new DOMDocument();
-                $htmlWrapper = '<?xml encoding="utf-8" ?><div>' . $translatedText . '</div>';
+                $htmlWrapper = '<?xml encoding="utf-8" ?><div>' . $safeTranslatedText . '</div>';
 
                 $previousState = libxml_use_internal_errors(true);
                 $tempDoc->loadHTML($htmlWrapper, LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD);
@@ -288,7 +293,7 @@ class PageTranslator
                         $node->appendChild($importedNode);
                     }
                 } else {
-                    $node->nodeValue = $translatedText;
+                    $node->nodeValue = $safeTranslatedText;
                 }
             }
         }
@@ -370,7 +375,13 @@ class PageTranslator
 
     private function shouldSkipUrl($url, $lang): bool
     {
-        return str_contains($url, 'http') || str_contains($url, 'mailto:') || str_contains($url, 'tel:') || str_contains($url, 'javascript:') || str_contains($url, '/api/') || str_starts_with($url, $lang . '/');
+        return str_starts_with($url, '#') ||
+            str_contains($url, 'http') ||
+            str_contains($url, 'mailto:') ||
+            str_contains($url, 'tel:') ||
+            str_contains($url, 'javascript:') ||
+            str_contains($url, '/api/') ||
+            str_starts_with($url, $lang . '/');
     }
 
     private function addLangInSlug($url, $lang): string
