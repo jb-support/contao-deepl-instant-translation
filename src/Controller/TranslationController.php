@@ -11,6 +11,8 @@ use JBSupport\ContaoDeeplInstantTranslationBundle\Model\PageTranslationModel;
 
 class TranslationController extends AbstractController
 {
+    private static $gpt_model = "gpt-6-luna";
+
     /**
      * Translates an array of strings efficiently.
      * @param array $batchInput Associative array ['id_1' => 'Text A', 'id_2' => 'Text B']
@@ -24,7 +26,7 @@ class TranslationController extends AbstractController
         $hashMap = [];
 
         foreach ($batchInput as $id => $text) {
-            $cleanText = preg_replace('/(?<= )\s+|\s+(?= )/', '', $text);
+            $cleanText = self::normalizeSpaces($text);
             $hash = md5($cleanText);
 
             $hashMap[$id] = $hash;
@@ -52,8 +54,7 @@ class TranslationController extends AbstractController
                 $apiResults = self::fetchGPTTranslationBatch($missingItems, $lang);
                 break;
             default:
-                $apiResults = $missingItems;
-                break;
+                return array_merge($finalResults, $missingItems);
         }
 
         foreach ($apiResults as $id => $translatedText) {
@@ -79,13 +80,11 @@ class TranslationController extends AbstractController
         return $finalResults;
     }
 
-    // --- NEW DEEPL BATCH LOGIC ---
-
     /**
      * Sends multiple strings to DeepL in one request.
      * DeepL supports up to 50 text parameters in one call.
      */
-    public static function fetchDeepLTranslationBatch(array $textMap, string $targetLang): array
+    public static function fetchDeepLTranslationBatch(array $textMap, string $targetLang, bool $retryOn429 = false): array
     {
         $config = new Config();
         $deeplKey = $config->getDeeplKey();
@@ -94,20 +93,21 @@ class TranslationController extends AbstractController
             return $textMap;
         }
 
-        // Prepare chunks (DeepL recommends ~50 items per request to avoid timeouts)
         $chunks = array_chunk($textMap, 50, true);
         $finalTranslations = [];
+        $url = $config->getBaseUrl() . "/v2/translate";
+
+        $headers = [
+            "Content-Type: application/json",
+            "Authorization: DeepL-Auth-Key " . $deeplKey
+        ];
 
         foreach ($chunks as $chunk) {
-            // DeepL requires a simple indexed array of strings for the 'text' field
-            // We must keep track of keys to map them back later
             $originalKeys = array_keys($chunk);
             $textValues = array_values($chunk);
 
-            $url = $config->getBaseUrl() . "/v2/translate";
-
             $body = [
-                'text' => $textValues, // Send Array here!
+                'text' => $textValues,
                 'target_lang' => Settings::getVariant($targetLang),
                 'source_lang' => $config->getOriginalLanguage(),
                 'formality' => $config->getFormality(),
@@ -118,37 +118,16 @@ class TranslationController extends AbstractController
                 $body['glossary_id'] = $gid;
             }
 
-            $ch = curl_init();
-            curl_setopt($ch, CURLOPT_URL, $url);
-            curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-            curl_setopt($ch, CURLOPT_POST, 1);
-            curl_setopt($ch, CURLOPT_HTTPHEADER, [
-                "Content-Type: application/json",
-                "Authorization: DeepL-Auth-Key " . $deeplKey
-            ]);
-            curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($body));
+            $response = self::sendApiRequest($url, $headers, $body, $retryOn429);
 
-            $result = curl_exec($ch);
-            $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-            curl_close($ch);
-
-            // Handle Errors
-            if ($httpCode !== 200) {
-                // If failed, return originals for this chunk
+            if ($response['code'] !== 200 || !isset($response['data']['translations'])) {
                 foreach ($chunk as $k => $v) $finalTranslations[$k] = $v;
                 continue;
             }
 
-            $response = json_decode($result, true);
-
-            // Map results back to original IDs
-            if (isset($response['translations'])) {
-                foreach ($response['translations'] as $index => $item) {
-                    $originalID = $originalKeys[$index];
-                    $finalTranslations[$originalID] = $item['text'];
-                }
-            } else {
-                foreach ($chunk as $k => $v) $finalTranslations[$k] = $v;
+            foreach ($response['data']['translations'] as $index => $item) {
+                $originalID = $originalKeys[$index];
+                $finalTranslations[$originalID] = $item['text'];
             }
         }
 
@@ -157,7 +136,7 @@ class TranslationController extends AbstractController
 
     public static function translateText(string $text, string $lang, int $page_id, string $translation_provider): string
     {
-        $text = preg_replace('/(?<= )\s+|\s+(?= )/', '', $text); // Remove extra spaces except one on each side if present
+        $text = self::normalizeSpaces($text);
         $hash = md5($text);
 
         $translationText = self::fetchTranslationFromDB($page_id, $hash, $lang);
@@ -171,14 +150,11 @@ class TranslationController extends AbstractController
                 $translatedText = self::fetchDeepLTranslation($text, $lang);
                 break;
             case 'openai':
-                $translatedText = $text; //self::fetchGPTTranslation($text, $lang);
+                $translatedText = self::fetchGPTTranslation($text, $lang);
                 break;
             default:
                 return $text;
-                break;
         }
-
-        return $translatedText;
 
         $translation = new TranslationModel();
         $translation->hash = $hash;
@@ -198,7 +174,7 @@ class TranslationController extends AbstractController
         $translation_provider = $config->getTranslationProvider();
 
         $translation = TranslationModel::findByPk($translation_id);
-        $text = preg_replace('/(?<= )\s+|\s+(?= )/', '', $translation->original_string);
+        $text = self::normalizeSpaces($translation->original_string);
 
         switch ($translation_provider) {
             case 'deepl':
@@ -241,21 +217,12 @@ class TranslationController extends AbstractController
     {
         $translation = TranslationModel::findOneBy(['pid = ? AND hash = ? AND language = ?'], [$page_id, $hash, $lang]);
         if ($translation) {
-            if ($translation->translated_string === null) {
-                return "[nbsp]";
-            }
-
-            return $translation->translated_string;
+            return $translation->translated_string ?? "[nbsp]";
         }
 
-        // Check for translation based on hash and language
         $translation = TranslationModel::findOneBy(['hash = ? AND language = ?'], [$hash, $lang]);
         if ($translation) {
-            if ($translation->translated_string === null) {
-                return "[nbsp]";
-            }
-
-            return $translation->translated_string;
+            return $translation->translated_string ?? "[nbsp]";
         }
 
         return null;
@@ -263,83 +230,12 @@ class TranslationController extends AbstractController
 
     public static function fetchDeepLTranslation(string $text, string $targetLang): string
     {
-        $config = new Config();
-
-        $deeplKey = $config->getDeeplKey();
-        $sourceLang = $config->getOriginalLanguage();
-        $base = $config->getBaseUrl();
-        $formality = $config->getFormality();
-        $glossaryId = $config->getGlossaryId();
-
-        if (empty($deeplKey)) {
-            return $text;
-        }
-
-        $url = $base . "/v2/translate";
-
-        $ch = curl_init();
-
-        curl_setopt($ch, CURLOPT_URL, $url);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-        curl_setopt($ch, CURLOPT_POST, 1);
-        curl_setopt($ch, CURLOPT_HTTPHEADER, [
-            "Content-Type: application/json",
-            "Authorization: DeepL-Auth-Key " . $deeplKey
-        ]);
-
-        $body = [
-            'text' => [$text],
-            'target_lang' => Settings::getVariant($targetLang),
-            'source_lang' => $sourceLang,
-            'formality' => $formality,
-            'tag_handling' => 'html',
-        ];
-
-        if ($glossaryId) {
-            $body['glossary_id'] = $glossaryId;
-        }
-
-        curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($body));
-
-        $result = curl_exec($ch);
-        curl_close($ch);
-
-        $info = curl_getinfo($ch);
-        $httpCode = $info['http_code'];
-
-        if ($httpCode === 456) {
-            return $text;
-        }
-
-        if ($httpCode === 429) {
-            sleep(1);
-            $ch = curl_init();
-            curl_setopt($ch, CURLOPT_URL, $url);
-            curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-            curl_setopt($ch, CURLOPT_POST, 1);
-            curl_setopt($ch, CURLOPT_HTTPHEADER, [
-                "Content-Type: application/json",
-                "Authorization: DeepL-Auth-Key " . $deeplKey
-            ]);
-            curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($body));
-            $result = curl_exec($ch);
-            curl_close($ch);
-        }
-
-        $response = json_decode($result, true);
-
-        if (isset($response['translations'][0]['text'])) {
-            $translatedText = $response['translations'][0]['text'];
-        } else {
-            $translatedText = $text; // Fallback to original text if translation fails
-        }
-
-        return $translatedText;
+        $result = self::fetchDeepLTranslationBatch(['single' => $text], $targetLang, true);
+        return $result['single'] ?? $text;
     }
 
     private static function formatTranslationText(string $text): string
     {
-        // Remove extra spaces except one on each side if present
         $text = html_entity_decode($text);
         $text = str_replace('[nbsp]', ' ', $text);
 
@@ -354,44 +250,31 @@ class TranslationController extends AbstractController
         $lang = Settings::getLanguageEnglishLabel($targetLang);
         $preferLatin = in_array($targetLang, ['sr']) ? ' in Latin script' : '';
 
-        $requestBody = [
-            "model" => "gpt-4o-mini-2024-07-18",
-            "input" => [
-                ["role" => "system", "content" => "Translate the user text in " . $lang . $preferLatin . ". Preserve Uppercase characters. Preserve HTML tags, do not add new ones. In " . $lang . $preferLatin . ". Preserve punctuation, preserve space characters near HTML tags. In " . $lang . $preferLatin . ". Every text is to be translated."],
-                ["role" => "user", "content" => $text]
-            ]
-        ];
-
         $config = new Config();
         $apiKey = $config->getOpenaiKey();
         if (empty($apiKey)) {
             return $text;
         }
 
-        $ch = curl_init('https://api.openai.com/v1/responses');
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_POST, true);
-        curl_setopt($ch, CURLOPT_HTTPHEADER, [
+        $body = [
+            "model" => self::$gpt_model,
+            "messages" => [
+                ["role" => "system", "content" => "Translate the user text in " . $lang . $preferLatin . ". Preserve Uppercase characters. Preserve HTML tags, do not add new ones. In " . $lang . $preferLatin . ". Preserve punctuation, preserve space characters near HTML tags. In " . $lang . $preferLatin . ". Every text is to be translated."],
+                ["role" => "user", "content" => $text]
+            ]
+        ];
+
+        $headers = [
             'Content-Type: application/json',
             'Authorization: Bearer ' . $apiKey,
-        ]);
+        ];
 
-        $body = json_encode($requestBody);
-        curl_setopt($ch, CURLOPT_POSTFIELDS, $body);
-
-        $result = curl_exec($ch);
-        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        curl_close($ch);
-
-        $response = json_decode($result, true);
+        $response = self::sendApiRequest('https://api.openai.com/v1/chat/completions', $headers, $body);
 
         $contentText = $text;
-
         // Responses API: try to extract output text
-        if (isset($response['output'][0]['content'][0]['text'])) {
-            $contentText = $response['output'][0]['content'][0]['text'];
-        } elseif (isset($response['output'][0]['content'][0]['type']) && isset($response['output'][0]['content'][0]['text'])) {
-            $contentText = $response['output'][0]['content'][0]['text'];
+        if (isset($response['data']['choices'][0]['message']['content'])) {
+            $contentText = $response['data']['choices'][0]['message']['content'];
         }
 
         return $contentText;
@@ -399,45 +282,31 @@ class TranslationController extends AbstractController
 
     public static function fetchGPTAliasTranslation(string $text): string
     {
-
-        $requestBody = [
-            "model" => "gpt-4o-mini-2024-07-18",
-            "input" => [
-                ["role" => "system", "content" => "Translate the following URL alias into a URL-friendly slug in English. The translation should be concise and must preserve the meaning of the original alias. Remove any special characters, replace spaces with hyphens, and ensure it is suitable for use in a URL. Do not include the domain, only translate the path part of the URL. If the alias is already in English or is a proper noun, return it as is without translation. If the alias is a slash (/), keep it as is. Return no explanations, only the translated alias. Do not remove or add slashes."],
-                ["role" => "user", "content" => $text]
-            ]
-        ];
-
         $config = new Config();
         $apiKey = $config->getOpenaiKey();
         if (empty($apiKey)) {
             return $text;
         }
 
-        $ch = curl_init('https://api.openai.com/v1/responses');
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_POST, true);
-        curl_setopt($ch, CURLOPT_HTTPHEADER, [
+        $body = [
+            "model" => self::$gpt_model,
+            "messages" => [
+                ["role" => "system", "content" => "Translate the following URL alias into a URL-friendly slug in English. The translation should be concise and must preserve the meaning of the original alias. Remove any special characters, replace spaces with hyphens, and ensure it is suitable for use in a URL. Do not include the domain, only translate the path part of the URL. If the alias is already in English or is a proper noun, return it as is without translation. If the alias is a slash (/), keep it as is. Return no explanations, only the translated alias. Do not remove or add slashes."],
+                ["role" => "user", "content" => $text]
+            ]
+        ];
+
+        $headers = [
             'Content-Type: application/json',
             'Authorization: Bearer ' . $apiKey,
-        ]);
+        ];
 
-        $body = json_encode($requestBody);
-        curl_setopt($ch, CURLOPT_POSTFIELDS, $body);
-
-        $result = curl_exec($ch);
-        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        curl_close($ch);
-
-        $response = json_decode($result, true);
+        $response = self::sendApiRequest('https://api.openai.com/v1/chat/completions', $headers, $body);
 
         $contentText = $text;
-
         // Responses API: try to extract output text
-        if (isset($response['output'][0]['content'][0]['text'])) {
-            $contentText = $response['output'][0]['content'][0]['text'];
-        } elseif (isset($response['output'][0]['content'][0]['type']) && isset($response['output'][0]['content'][0]['text'])) {
-            $contentText = $response['output'][0]['content'][0]['text'];
+        if (isset($response['data']['choices'][0]['message']['content'])) {
+            $contentText = $response['data']['choices'][0]['message']['content'];
         }
 
         return $contentText;
@@ -452,42 +321,41 @@ class TranslationController extends AbstractController
         $config = new Config();
         $apiKey = $config->getOpenaiKey();
 
-
         if (empty($apiKey) || empty($textMap)) {
             return $textMap;
         }
 
         $finalTranslations = [];
-
         $chunks = array_chunk($textMap, 30, true);
 
+        $languageName = Settings::getLanguageEnglishLabel($targetLang);
+        $systemPrompt =
+            "### ROLE\n"
+            . "You are an expert Website Localization Engineer & UX Writer. Your goal is to translate UI and marketing microcopy into native, high-quality " . $languageName . ".\n\n"
+            . "### GUIDELINES\n"
+            . "* **Native Resonance:** Do not translate word-for-word. Rewrite for natural flow, idiomatic correctness, and standard " . $languageName . " typography.\n"
+            . "* **UI Constraints:** Keep CTA/Button text concise and action-oriented. Match the character length of the source as closely as possible to prevent UI breakage.\n"
+            . "* **Tone:** Maintain the source's level of formality. Default to 'Professional/Neutral' if ambiguous.\n"
+            . "* **Language-Specifics:** Use locale-appropriate punctuation (e.g., quotes, spacing). Avoid literal calques or awkward compounds.\n\n"
+            . "### STRICT TECHNICAL RULES\n"
+            . "1. **Structure:** Return ONLY the valid JSON. Do not modify keys, nesting, or order. Translate values ONLY.\n"
+            . "2. **Placeholders:** Preserve variables EXACTLY: `{name}`, `{{var}}`, `%s`, `\$t(key)`, `[link]`, etc. Do not translate or re-space inside them.\n"
+            . "3. **HTML/Code:** Leave HTML tags (`<br>`, `<span>`), attributes, URLs, and file paths untouched. Only translate the text between tags.\n"
+            . "4. **Entities:** Preserve `&nbsp;`, `\n`, and other escape sequences.\n"
+            . "5. **No Hallucinations:** Never invent words or output nonsense. If a brand name exists, keep it in its original or official localized form.\n\n"
+            . "### OUTPUT FORMAT\n"
+            . "Return ONLY the translated JSON object. No Markdown code blocks, no preamble, no explanations.";
+
+        $headers = [
+            'Content-Type: application/json',
+            'Authorization: Bearer ' . $apiKey,
+        ];
+
         foreach ($chunks as $chunk) {
-            $languageName = Settings::getLanguageEnglishLabel($targetLang);
-
-            $systemPrompt =
-                "### ROLE\n"
-                . "You are an expert Website Localization Engineer & UX Writer. Your goal is to translate UI and marketing microcopy into native, high-quality " . $languageName . ".\n\n"
-
-                . "### GUIDELINES\n"
-                . "* **Native Resonance:** Do not translate word-for-word. Rewrite for natural flow, idiomatic correctness, and standard " . $languageName . " typography.\n"
-                . "* **UI Constraints:** Keep CTA/Button text concise and action-oriented. Match the character length of the source as closely as possible to prevent UI breakage.\n"
-                . "* **Tone:** Maintain the source's level of formality. Default to 'Professional/Neutral' if ambiguous.\n"
-                . "* **Language-Specifics:** Use locale-appropriate punctuation (e.g., quotes, spacing). Avoid literal calques or awkward compounds.\n\n"
-
-                . "### STRICT TECHNICAL RULES\n"
-                . "1. **Structure:** Return ONLY the valid JSON. Do not modify keys, nesting, or order. Translate values ONLY.\n"
-                . "2. **Placeholders:** Preserve variables EXACTLY: `{name}`, `{{var}}`, `%s`, `$t(key)`, `[link]`, etc. Do not translate or re-space inside them.\n"
-                . "3. **HTML/Code:** Leave HTML tags (`<br>`, `<span>`), attributes, URLs, and file paths untouched. Only translate the text between tags.\n"
-                . "4. **Entities:** Preserve `&nbsp;`, `\n`, and other escape sequences.\n"
-                . "5. **No Hallucinations:** Never invent words or output nonsense. If a brand name exists, keep it in its original or official localized form.\n\n"
-
-                . "### OUTPUT FORMAT\n"
-                . "Return ONLY the translated JSON object. No Markdown code blocks, no preamble, no explanations.";
-
             $jsonPayload = json_encode($chunk, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
 
-            $requestBody = [
-                "model" => "gpt-4o-mini-2024-07-18",
+            $body = [
+                "model" => self::$gpt_model,
                 "response_format" => ["type" => "json_object"],
                 "messages" => [
                     ["role" => "system", "content" => $systemPrompt],
@@ -496,43 +364,66 @@ class TranslationController extends AbstractController
                 "temperature" => 0.3
             ];
 
-            $ch = curl_init('https://api.openai.com/v1/chat/completions');
+            $response = self::sendApiRequest('https://api.openai.com/v1/chat/completions', $headers, $body);
+
+            if ($response['code'] === 200 && isset($response['data']['choices'][0]['message']['content'])) {
+                $content = $response['data']['choices'][0]['message']['content'];
+                $decodedTranslations = json_decode($content, true);
+
+                if (json_last_error() === JSON_ERROR_NONE && is_array($decodedTranslations)) {
+                    foreach ($chunk as $originalKey => $originalText) {
+                        $finalTranslations[$originalKey] = $decodedTranslations[$originalKey] ?? $originalText;
+                    }
+                    continue;
+                }
+            }
+
+            foreach ($chunk as $k => $v) $finalTranslations[$k] = $v;
+        }
+
+        return $finalTranslations;
+    }
+
+    private static function sendApiRequest(string $url, array $headers, array $body, bool $retryOn429 = false): array
+    {
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, $url);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_POST, true);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($body));
+
+        $result = curl_exec($ch);
+        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        curl_close($ch);
+
+        if ($retryOn429 && $httpCode === 429) {
+            sleep(1);
+            $ch = curl_init();
+            curl_setopt($ch, CURLOPT_URL, $url);
             curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
             curl_setopt($ch, CURLOPT_POST, true);
-            curl_setopt($ch, CURLOPT_HTTPHEADER, [
-                'Content-Type: application/json',
-                'Authorization: Bearer ' . $apiKey,
-            ]);
-            curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($requestBody));
+            curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+            curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($body));
 
             $result = curl_exec($ch);
             $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
             curl_close($ch);
-
-            if ($httpCode === 200) {
-                $response = json_decode($result, true);
-                $content = $response['choices'][0]['message']['content'] ?? null;
-
-                if ($content) {
-                    $decodedTranslations = json_decode($content, true);
-
-                    if (json_last_error() === JSON_ERROR_NONE && is_array($decodedTranslations)) {
-                        foreach ($chunk as $originalKey => $originalText) {
-                            if (isset($decodedTranslations[$originalKey])) {
-                                $finalTranslations[$originalKey] = $decodedTranslations[$originalKey];
-                            } else {
-                                $finalTranslations[$originalKey] = $originalText;
-                            }
-                        }
-                    } else {
-                        foreach ($chunk as $k => $v) $finalTranslations[$k] = $v;
-                    }
-                }
-            } else {
-                foreach ($chunk as $k => $v) $finalTranslations[$k] = $v;
-            }
         }
 
-        return $finalTranslations;
+        if ($httpCode === 456) {
+            return ['code' => $httpCode, 'data' => null];
+        }
+
+        return [
+            'code' => $httpCode,
+            'data' => $result ? json_decode($result, true) : null
+        ];
+    }
+
+    private static function normalizeSpaces(string $text): string
+    {
+        // Remove extra spaces except one on each side if present
+        return preg_replace('/(?<= )\s+|\s+(?= )/', '', $text);
     }
 }
