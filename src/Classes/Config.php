@@ -6,8 +6,10 @@ class Config
 {
     private const FIELDS = [
         'deepl_key',
+        'openai_key',
         // 'deepl_pro_plan', --- IGNORE --- set based on deepl_key
         'original_language',
+        'enabled_languages',
         'languages',
         'show_modal',
         'in_url',
@@ -16,7 +18,9 @@ class Config
         'element_label_type',
         'formality',
         'glossary_id',
-        'disabled'
+        'disabled',
+        'always_translate',
+        'translation_provider',
     ];
 
     private array $config;
@@ -114,5 +118,28 @@ class Config
     public function getDisabled(): bool
     {
         return (bool) ($this->config['disabled'] ?? false);
+    }
+
+    public function getAlwaysTranslate(): array
+    {
+        $alwaysTranslate = $this->config['always_translate'] ?? '';
+        $lines = explode("\n", $alwaysTranslate);
+        $lines = array_filter(array_map('trim', $lines));
+
+        return $lines;
+    }
+
+    public function getOpenaiKey(): ?string
+    {
+        return $this->config['openai_key'] ?? null;
+    }
+
+    public function getTranslationProvider(): string
+    {
+        if (!empty($this->getOpenaiKey())) {
+            return 'openai';
+        }
+
+        return '';
     }
 }

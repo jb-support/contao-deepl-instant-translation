@@ -5,13 +5,17 @@ namespace JBSupport\ContaoDeeplInstantTranslationBundle\EventListener;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpKernel\Event\RequestEvent;
 use JBSupport\ContaoDeeplInstantTranslationBundle\Classes\Config;
+use JBSupport\ContaoDeeplInstantTranslationBundle\Classes\UrlTranslationsConfig;
 
 class LanguageRedirectListener
 {
     private Config $config;
+    private UrlTranslationsConfig $urlTranslationsConfig;
+
     public function __construct()
     {
         $this->config = new Config();
+        $this->urlTranslationsConfig = new UrlTranslationsConfig();
     }
 
     public function onKernelRequest(RequestEvent $event): void
@@ -23,6 +27,14 @@ class LanguageRedirectListener
 
         if ($this->config->getDisabled()) {
             return;
+        }
+
+        if (isset($_GET["dev"]) && $_GET["dev"]) {
+            setcookie('dev', '1', time() + 3600 * 24 * 30, '/');
+        }
+
+        if (isset($_GET["nodev"]) && $_GET["nodev"]) {
+            setcookie('dev', '', time() - 3600, '/');
         }
 
         $request = $event->getRequest();
@@ -53,12 +65,18 @@ class LanguageRedirectListener
         $originalLang = $this->config->getOriginalLanguage();
         $enabledLanguages = $this->config->getEnabledLanguages();
         $showInUrl = $this->config->getShowInUrl();
+        $translations = $this->urlTranslationsConfig->getUrlTranslations();
 
         $langNew = $agentLanguage ?: $request->request->get('lang');
         $langInUrl = explode('/', $pathInfo)[1];
         $langInUrl = preg_match('/^[a-z]{2}$/', $langInUrl) ? $langInUrl : '';
 
+        $pathWithoutLang = preg_replace('/^\/[a-z]{2}(\/|$)/', '/', $pathInfo, 1);
+        // $pathInfo = array_search($pathWithoutLang, $translations) ? $langInUrl . '/' . array_search($pathWithoutLang, $translations) : $pathInfo;
 
+        if($_GET["dev"]) {
+            dd($pathInfo, $langInUrl, $langNew, $agentLanguage, $translations);
+        }
         if (!$showInUrl) {
             if ($langNew) {
                 setcookie('lang_code', $langNew, time() + 3600 * 24 * 30, '/');
@@ -107,6 +125,7 @@ class LanguageRedirectListener
         }
 
         $newReqPath = $pathInfo;
+
         if (in_array($lang, $enabledLanguages)) {
             if ($strip) {
                 $newReqPath = substr($pathInfo, strlen($lang) + 1);

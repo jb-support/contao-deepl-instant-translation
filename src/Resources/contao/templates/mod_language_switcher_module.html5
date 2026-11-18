@@ -1,49 +1,77 @@
 <?php if (!$this->disabled): ?>
-<form method="POST" action="" class="translation-language-switcher">
-    <input type="hidden" name="REQUEST_TOKEN" value="<?= $this->requestToken ?>">
-    <?php
-        switch($this->elementType):
-            case 'select':
-    ?>
-    <select name="lang" id="lang" class="notranslate translation-language-select">
-        <?php foreach ($this->languages as $alpha2 => $language): ?>
-        <option class="translation-language-option<?= $this->lang == $alpha2 ? ' selected' : '' ?>"
-            value="<?= $alpha2 ?>" <?= $this->lang == $alpha2 ? 'selected' : '' ?>><?= $language ?></option>
-        <?php endforeach; ?>
-    </select>
-    <?php break; ?>
-    <?php case 'radio': ?>
-    <ul class="notranslate translation-language-list">
-        <?php foreach ($this->languages as $alpha2 => $language): ?>
-        <li class="translation-language-item<?= $this->lang == $alpha2 ? ' active' : '' ?>">
-            <label>
-                <input type="radio" name="lang" value="<?= $alpha2 ?>"
-                    <?= $this->lang == $alpha2 ? 'checked' : '' ?>>
-                <?= $language ?>
-            </label>
-        </li>
-        <?php endforeach; ?>
-    </ul>
-    <?php break; ?>
-    <?php case 'buttons': ?>
-    <div class="notranslate translation-language-buttons">
-        <ul class="translation-language-list">
-            <?php foreach ($this->languages as $alpha2 => $language): ?>
-            <li class="translation-language-item">
-                <button type="submit" name="lang" value="<?= $alpha2 ?>"
-                    class="translation-language-button<?= $this->lang == $alpha2 ? ' active' : '' ?>">
-                    <?= $language ?>
-                </button>
-            </li>
-            <?php endforeach; ?>
-        </ul>
+<div class="translation-language-switcher-container">
+    <div class="translation-language-switcher-trigger">
+        <div class="translation-language-switcher-icon">
+            <?php if($_GET["dev"]): ?>
+
+            <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <g clip-path="url(#clip0_152_2)">
+                    <path
+                        d="M15.999 0C7.164 0.002 0.002 7.164 0 15.999C0.002 24.837 7.164 31.999 15.999 32C24.837 31.998 31.999 24.837 32 15.999C31.999 7.164 24.837 0.002 15.999 0ZM2.052 17.001H7.04C7.111 18.86 7.366 20.528 7.76 22H3.373C2.642 20.466 2.182 18.783 2.052 17.001ZM17 8.002V2.212C17.941 2.917 19.991 4.713 21.433 8.003H17V8.002ZM22.169 10.001C22.597 11.438 22.883 13.106 22.964 15.001H17V10.001H22.169ZM14.546 2.565C14.72 2.421 14.868 2.307 15 2.209V8.002H10.562C11.09 6.799 11.699 5.794 12.305 4.969C13.125 3.855 13.943 3.068 14.546 2.565ZM15 10.001V15.001H9.04C9.121 13.097 9.414 11.438 9.845 10.001H15ZM7.04 15.001H2.052C2.181 13.22 2.64 11.535 3.371 10.001H7.76C7.366 11.474 7.111 13.143 7.04 15.001ZM9.035 17.001H15V22H9.83C9.402 20.564 9.116 18.896 9.035 17.001ZM15 24.001V29.79C14.06 29.086 12.009 27.291 10.567 24.001H15ZM17.453 29.436C17.28 29.58 17.131 29.693 17 29.792V24.002H21.437C20.91 25.204 20.3 26.208 19.694 27.033C18.875 28.145 18.056 28.934 17.453 29.436ZM17 22V17.001H22.959C22.878 18.904 22.585 20.563 22.155 22H17ZM24.96 17.001H29.946C29.817 18.782 29.357 20.466 28.626 22H24.24C24.633 20.528 24.888 18.86 24.96 17.001ZM24.96 15.001C24.888 13.142 24.634 11.474 24.239 10.001H28.627C29.358 11.535 29.818 13.22 29.946 15.001H24.96ZM27.473 8.002H23.584C22.703 5.722 21.547 3.99 20.468 2.747C23.332 3.714 25.777 5.574 27.473 8.002ZM11.531 2.747C10.453 3.991 9.296 5.723 8.416 8.002H4.527C6.224 5.574 8.669 3.714 11.531 2.747ZM4.53 24.001H8.417C9.296 26.277 10.451 28.008 11.529 29.251C8.669 28.285 6.226 26.427 4.53 24.001ZM20.47 29.251C21.548 28.008 22.703 26.277 23.583 24.001H27.47C25.774 26.427 23.331 28.285 20.47 29.251Z"
+                        fill="currentColor" />
+                </g>
+                <defs>
+                    <clipPath id="clip0_152_2">
+                        <rect width="32" height="32" fill="transparent" />
+                    </clipPath>
+                </defs>
+            </svg>
+            <?php else: ?>
+            <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="32px"
+                height="32px" viewBox="0 0 32 32" version="1.1">
+                <g id="surface1">
+                    <path
+                        style="fill:none;stroke-width:26;stroke-linecap:butt;stroke-linejoin:miter;stroke:currentColor;stroke-opacity:1;stroke-miterlimit:4;"
+                        d="M 208.974609 15.021973 C 101.513672 15.534668 14.714355 103.000488 15.021973 210.512695 C 15.27832 317.973633 102.487793 404.978027 210 404.978027 C 317.512207 404.978027 404.72168 317.973633 404.978027 210.512695 C 405.285645 103.000488 318.486328 15.534668 211.025391 15.021973 Z M 208.974609 15.021973 "
+                        transform="matrix(0.0761905,0,0,0.0761905,0,0)" />
+                    <path
+                        style="fill:none;stroke-width:18;stroke-linecap:butt;stroke-linejoin:miter;stroke:currentColor;stroke-opacity:1;stroke-miterlimit:4;"
+                        d="M 210 15.021973 L 210 404.978027 M 404.978027 210 L 15.021973 210 M 59.01123 89.978027 C 149.348145 154.475098 270.651855 154.475098 360.98877 89.978027 M 360.98877 330.021973 C 270.651855 265.524902 149.348145 265.524902 59.01123 330.021973 M 194.978027 19.995117 C 138.735352 67.521973 106.281738 137.402344 106.281738 211.025391 C 106.281738 284.597168 138.735352 354.477539 194.978027 402.004395 M 225.021973 402.004395 C 281.264648 354.477539 313.718262 284.597168 313.718262 211.025391 C 313.718262 137.402344 281.264648 67.521973 225.021973 19.995117 "
+                        transform="matrix(0.0761905,0,0,0.0761905,0,0)" />
+                </g>
+            </svg>
+            <?php endif; ?>
+            <span class="notranslate translation-language-switcher-text">
+                <?= strtoupper($this->lang) ?>
+            </span>
+        </div>
     </div>
-    <?php endswitch; ?>
-</form>
+    <div class="translation-language-switcher-megamenu navLayer">
+        <div class="inner">
+            <div class="link-close"><span>Schließen</span> <span class="icon"></span></div>
+            <div class="translation-language-switcher-content">
+            <?php foreach($this->languages as $languages): ?>
+            <div class="items">
+                <form method="POST" action="" class="translation-language-switcher">
+                    <input type="hidden" name="REQUEST_TOKEN" value="<?= $this->requestToken ?>">
+                    <div class="notranslate translation-language-buttons">
+                        <ul class="translation-language-list">
+                            <?php foreach ($languages as $alpha2 => $language): ?>
+                            <li class="translation-language-item">
+                                <button type="submit" name="lang" value="<?= $alpha2 ?>"
+                                    class="translation-language-button<?= $this->lang == $alpha2 ? ' active' : '' ?>">
+                                    <div class="translation-language-flag">
+                                        <?= $this->getFlagSvg($alpha2) ?>
+                                    </div>
+                                    <?= $language ?>
+                                </button>
+                            </li>
+                            <?php endforeach; ?>
+                        </ul>
+                    </div>
+                </form>
+            </div>
+            <?php endforeach; ?>
+            </div>
+        </div>
+    </div>
+</div>
 
 <div class="translation-spinner-container">
     <div class="translation-spinner"></div>
     <span class="translation-spinner-text">Translating...</span>
+    <span class="translation-spinner-subtext">Seems you are the first one translating this page. Translating may take a
+        moment.</span>
 </div>
 
 <script>
@@ -77,9 +105,22 @@
     });
 
     function showModal(newLang) {
-        const translationStrings = JSON.parse('<?= $this->translatingStrings ?>');
+        const translationStrings = JSON.parse(`<?= $this->translatingStrings ?>`);
+        const translatingSubstrings = JSON.parse(`<?= $this->translatingSubstrings ?>`);
+
         const spinnerText = document.querySelector('.translation-spinner-text');
+        const spinnerSubtext = document.querySelector('.translation-spinner-subtext');
         spinnerText.textContent = `${translationStrings[newLang]}...`;
+        spinnerSubtext.textContent = `${translatingSubstrings[newLang]}`;
+
+        spinnerSubtext.style.display = "none";
+        if (window._translationSubtextTimeout) {
+            clearTimeout(window._translationSubtextTimeout);
+        }
+
+        window._translationSubtextTimeout = setTimeout(function() {
+            spinnerSubtext.style.display = "";
+        }, 10000);
 
         const spinnerContainer = document.querySelector('.translation-spinner-container');
         spinnerContainer.classList.add('active');

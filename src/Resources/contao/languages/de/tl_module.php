@@ -21,6 +21,7 @@ $GLOBALS['TL_LANG']['tl_module']['formality']['prefer_more'] = 'Formeller';
 $GLOBALS['TL_LANG']['tl_module']['formality']['prefer_less'] = 'Weniger formell';
 $GLOBALS['TL_LANG']['tl_module']['formality']['default'] = 'Standard';
 $GLOBALS['TL_LANG']['tl_module']['disabled'] = ['Deaktivieren', 'Deaktiviert das Modul, um unerwolltes Verbrauchen von Kontingent zu verhindern. Versteckt auch den Sprachwechsler.'];
+$GLOBALS['TL_LANG']['tl_module']['always_translate'] = ['Immer separat Übersetzen', 'Hier können Sie Text eingeben, die immer als eigener Text behandelt werden sollen.'];
 
 $GLOBALS['TL_LANG']['tl_module']['glossary_id'] = ['Glossar', 'Glossare müssen bei DeepL erstmal erstellt werden.'];
 
@@ -60,3 +61,16 @@ $GLOBALS['TL_LANG']['lang']['es'] = 'Spanisch';
 $GLOBALS['TL_LANG']['lang']['sv'] = 'Schwedisch';
 $GLOBALS['TL_LANG']['lang']['tr'] = 'Türkisch';
 $GLOBALS['TL_LANG']['lang']['uk'] = 'Ukrainisch';
+
+$GLOBALS['TL_LANG']['lang']['ku'] = 'Kurdisch (Kurmancî)';
+$GLOBALS['TL_LANG']['lang']['fa'] = 'Persisch (Dari)';
+$GLOBALS['TL_LANG']['lang']['ps'] = 'Paschtu';
+$GLOBALS['TL_LANG']['lang']['sr'] = 'Serbisch';
+$GLOBALS['TL_LANG']['lang']['hr'] = 'Kroatisch';
+$GLOBALS['TL_LANG']['lang']['bs'] = 'Bosnisch';
+$GLOBALS['TL_LANG']['lang']['ti'] = 'Tigrinya';
+$GLOBALS['TL_LANG']['lang']['hi'] = 'Hindi';
+$GLOBALS['TL_LANG']['lang']['ta'] = 'Tamilisch';
+$GLOBALS['TL_LANG']['lang']['vi'] = 'Vietnamesisch';
+$GLOBALS['TL_LANG']['lang']['th'] = 'Thailändisch';
+$GLOBALS['TL_LANG']['lang']['ur'] = 'Urdu';

@@ -27,7 +27,9 @@ $GLOBALS['TL_DCA']['tl_jb_translation'] = array(
 		'sql' => array(
 			'keys' => array(
 				'id' => 'primary',
-				'hash,language,pid' => 'index'
+				'pid' => 'index',
+				'tstamp' => 'index',
+				'hash,language' => 'unique',
 			)
 		),
 		'notCreatable' => true,
@@ -38,14 +40,14 @@ $GLOBALS['TL_DCA']['tl_jb_translation'] = array(
 	'list' => array(
 		'sorting' => array(
 			'mode'                    => 2,
+			'flag'                    => 1,
 			'panelLayout'             => 'filter;sort,search,limit',
-			'fields'                  => array('pid', 'original_string', 'translated_string', 'language'),
-			'defaultSearchField'	  => 'textarea'
+			'fields'                  => array('tstamp', 'pid', 'original_string', 'translated_string', 'language'),
 		),
 		'label' => array(
 			'fields'                  => array('pid', 'original_string', 'translated_string', 'language'),
 			'showColumns' 			  => true,
-			'label_callback' 		  => array('tl_jb_translation', 'renderPlainLabel'),
+			// 'label_callback' 		  => array('tl_jb_translation', 'renderPlainLabel'),
 		),
 		'global_operations' => array(
 			'all' => [
@@ -122,7 +124,7 @@ $GLOBALS['TL_DCA']['tl_jb_translation'] = array(
 			'search' 				  => true,
 			'sorting'                 => true,
 			'inputType'               => 'textarea',
-			'eval' 				      => array('decodeEntities' => false, 'allowHtml' => true, 'tl_class' => 'clr'),
+			'eval' 				      => array('decodeEntities' => false, 'allowHtml' => true, 'tl_class' => 'clr', 'preserveTags' => true, 'rte' => 'tinyMCENoRoot', 'tl_class' => 'clr'),
 			'sql'                     => "text NULL default NULL"
 		)
 	)

@@ -4,11 +4,13 @@ use Contao\System;
 use Contao\ArrayUtil;
 use Symfony\Component\HttpFoundation\Request;
 use JBSupport\ContaoDeeplInstantTranslationBundle\Model\TranslationModel;
+use JBSupport\ContaoDeeplInstantTranslationBundle\Model\PageTranslationModel;
 use JBSupport\ContaoDeeplInstantTranslationBundle\Controller\FrontendModule\LanguageSwitcherModuleController;
 
 $GLOBALS['FMD']['jb_translation']['language_switcher'] = LanguageSwitcherModuleController::class;
 
 $GLOBALS['TL_MODELS']['tl_jb_translation'] = TranslationModel::class;
+$GLOBALS['TL_MODELS']['tl_jb_page_translation'] = PageTranslationModel::class;
 
 if (System::getContainer()->get('contao.routing.scope_matcher')
     ->isBackendRequest(System::getContainer()->get('request_stack')->getCurrentRequest() ?? Request::create(''))

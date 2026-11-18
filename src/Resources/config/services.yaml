@@ -3,11 +3,10 @@ services:
         autoconfigure: true
         autowire: true
 
-    # makes classes in src/ available to be used as services
-    # this creates a service per class whose id is the fully-qualified class name
     JBSupport\ContaoDeeplInstantTranslationBundle\:
-        resource: '../../../src/*'
-        exclude: '../../../src/{DependencyInjection,Entity,Resources}'
+        resource: ../../
+        exclude: ../../{Entity,Migrations,Model,Resources,Tests,Widget}
+
 
     JBSupport\ContaoDeeplInstantTranslationBundle\EventListener\ModifyFrontendPageListener:
         tags:
@@ -17,3 +16,17 @@ services:
         tags:
             - { name: kernel.event_listener, event: kernel.request, priority: 150 }
 
+    JBSupport\ContaoDeeplInstantTranslationBundle\Service\SitemapCrawlerService:
+        arguments:
+            $framework: '@contao.framework'
+
+    JBSupport\ContaoDeeplInstantTranslationBundle\Service\UrlIndexerService:
+        arguments:
+            $framework: '@contao.framework'
+
+    # Ensure the Command is registered
+    JBSupport\ContaoDeeplInstantTranslationBundle\Command\CrawlSitemapCommand:
+        arguments:
+            $crawler: '@JBSupport\ContaoDeeplInstantTranslationBundle\Service\SitemapCrawlerService'
+        tags:
+            - { name: 'console.command' }

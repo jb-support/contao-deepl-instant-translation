@@ -42,3 +42,16 @@ $GLOBALS['TL_LANG']['lang']['es'] = 'Spanish';
 $GLOBALS['TL_LANG']['lang']['sv'] = 'Swedish';
 $GLOBALS['TL_LANG']['lang']['tr'] = 'Turkish';
 $GLOBALS['TL_LANG']['lang']['uk'] = 'Ukrainian';
+
+$GLOBALS['TL_LANG']['lang']['ku'] = 'Kurdish (Kurmancî)';
+$GLOBALS['TL_LANG']['lang']['fa'] = 'Persian (Dari/Farsi)';
+$GLOBALS['TL_LANG']['lang']['ps'] = 'Pashtu';
+$GLOBALS['TL_LANG']['lang']['sr'] = 'Serbian';
+$GLOBALS['TL_LANG']['lang']['hr'] = 'Croatian';
+$GLOBALS['TL_LANG']['lang']['bs'] = 'Bosnian';
+$GLOBALS['TL_LANG']['lang']['ti'] = 'Tigrinya';
+$GLOBALS['TL_LANG']['lang']['hi'] = 'Hindi';
+$GLOBALS['TL_LANG']['lang']['ta'] = 'Tamil';
+$GLOBALS['TL_LANG']['lang']['vi'] = 'Vietnamese';
+$GLOBALS['TL_LANG']['lang']['th'] = 'Thai';
+$GLOBALS['TL_LANG']['lang']['ur'] = 'Urdu';

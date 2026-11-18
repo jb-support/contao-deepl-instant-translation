@@ -1,0 +1,5 @@
+crawl_sitemap:
+    path: /api/crawl_sitemap
+    controller: JBSupport\ContaoDeeplInstantTranslationBundle\Controller\CrawlController::crawl
+    defaults:
+        _token_check: false
